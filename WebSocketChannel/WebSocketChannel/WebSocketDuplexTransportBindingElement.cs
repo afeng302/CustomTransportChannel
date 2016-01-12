@@ -33,5 +33,20 @@ namespace WebSocketChannel
         {
             return typeof(TChannel) == typeof(IDuplexChannel);
         }
+
+        public override IChannelFactory<TChannel> BuildChannelFactory<TChannel>(BindingContext context)
+        {
+            return (IChannelFactory<TChannel>)(object)new WebSocketDuplexChannelFactory(this, context);
+        }
+
+        public override bool CanBuildChannelListener<TChannel>(BindingContext context)
+        {
+            return typeof(TChannel) == typeof(IDuplexChannel);
+        }
+
+        public override IChannelListener<TChannel> BuildChannelListener<TChannel>(BindingContext context)
+        {
+            return (IChannelListener<TChannel>)(object)new WebSocketDuplexChannelListener(this, context);
+        }
     }
 }
