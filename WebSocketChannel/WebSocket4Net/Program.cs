@@ -16,13 +16,14 @@ namespace WebSocket4Net
         static void Main(string[] args)
         {
             // remote sevice information
-            string remoteHost = "112.74.207.57";
+            string remoteHost = "127.0.0.1";
+            //string remoteHost = "112.74.207.57";
             //string remoteHost = "10.193.228.69"; //"a23126-04"; // 10.193.228.69
             string remotePort = "2012";
 
             // get default web proxy
-            //Uri serviceUrl = new Uri(string.Format("http://{0}", remoteHost));
-            Uri serviceUrl = new Uri(string.Format("http://www.baidu.com", remoteHost));
+            Uri serviceUrl = new Uri(string.Format("http://{0}", remoteHost));
+            //Uri serviceUrl = new Uri(string.Format("http://www.baidu.com", remoteHost));
             Uri proxyUri = WebRequest.DefaultWebProxy.GetProxy(serviceUrl);
             if (serviceUrl == proxyUri)
             {
@@ -89,7 +90,7 @@ namespace WebSocket4Net
         {
             Console.WriteLine("wsClient_MessageReceived: [" + e.Message + "]");
 
-            byte[] data = new byte[10];
+            byte[] data = new byte[1024];
 
             Console.WriteLine("sending data ... length=[" + data.Length + "]");
             ((WebSocket)sender).Send(data, 0, data.Length);

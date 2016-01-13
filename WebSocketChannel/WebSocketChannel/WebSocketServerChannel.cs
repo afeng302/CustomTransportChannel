@@ -10,12 +10,18 @@ namespace WebSocketChannel
 {
     class WebSocketServerChannel : ChannelBase, IDuplexChannel
     {
+        MessageEncoder encoder;
+        BufferManager bufferManager;
+
         WebSocketSession wsServer = null;
         EndpointAddress localAddress = null;
-        public WebSocketServerChannel(ChannelManagerBase channelManager, WebSocketSession wsServer,
-            EndpointAddress localAddress)
+        public WebSocketServerChannel(MessageEncoder encoder, BufferManager bufferManager, ChannelManagerBase channelManager,
+            WebSocketSession wsServer, EndpointAddress localAddress)
             : base(channelManager)
         {
+            this.encoder = encoder;
+            this.bufferManager = bufferManager;
+
             this.wsServer = wsServer;
             this.localAddress = localAddress;
         }

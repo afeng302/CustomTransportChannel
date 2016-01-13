@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
@@ -10,6 +11,8 @@ namespace WebSocketChannel
 {
     class WebSocketDuplexChannelListener : ChannelListenerBase<IDuplexChannel>
     {
+        BufferManager bufferManager;
+        MessageEncoderFactory encoderFactory;
         WebSocketServer wsServer = new WebSocketServer();
         Uri uri = null;
         Queue<AcceptChannelAsyncResult> asyncResultQueue = new Queue<AcceptChannelAsyncResult>();
@@ -18,6 +21,31 @@ namespace WebSocketChannel
         public WebSocketDuplexChannelListener(WebSocketDuplexTransportBindingElement bindingElement, BindingContext context)
             : base(context.Binding)
         {
+            // populate members from binding element
+            int maxBufferSize = (int)bindingElement.MaxReceivedMessageSize;
+            this.bufferManager = BufferManager.CreateBufferManager(bindingElement.MaxBufferPoolSize, maxBufferSize);
+
+            Collection<MessageEncodingBindingElement> messageEncoderBindingElements
+                = context.BindingParameters.FindAll<MessageEncodingBindingElement>();
+
+            if (messageEncoderBindingElements.Count > 1)
+            {
+                throw new InvalidOperationException("More than one MessageEncodingBindingElement was found in the BindingParameters of the BindingContext");
+            }
+            else if (messageEncoderBindingElements.Count == 1)
+            {
+                if (messageEncoderBindingElements[0].MessageVersion != MessageVersion.Soap12WSAddressing10)
+                {
+                    throw new InvalidOperationException("This transport must be used with the an encoding with MessageVersion.Soap12WSAddressing10.");
+                }
+
+                this.encoderFactory = messageEncoderBindingElements[0].CreateMessageEncoderFactory();
+            }
+            else
+            {
+                this.encoderFactory = new TextMessageEncodingBindingElement(MessageVersion.Soap12WSAddressing10, Encoding.UTF8).CreateMessageEncoderFactory();
+            }
+
             this.uri = new Uri(context.ListenUriBaseAddress, context.ListenUriRelativeAddress);
         }
         protected override IDuplexChannel OnAcceptChannel(TimeSpan timeout)
@@ -142,7 +170,8 @@ namespace WebSocketChannel
                 aysncResult = this.asyncResultQueue.Dequeue();
             }
 
-            WebSocketServerChannel channel = new WebSocketServerChannel(this, session, new EndpointAddress(this.uri));
+            WebSocketServerChannel channel = new WebSocketServerChannel(this.encoderFactory.Encoder, this.bufferManager,
+                this, session, new EndpointAddress(this.uri));
             lock(this.channelMap)
             {
                 this.channelMap[session] = channel;
@@ -160,7 +189,6 @@ namespace WebSocketChannel
 
         class AcceptChannelAsyncResult : AsyncResult
         {
-            WebSocketDuplexChannelListener listener;
             IDuplexChannel channel;
             public AcceptChannelAsyncResult(AsyncCallback callback, object state)
                 : base(callback, state)

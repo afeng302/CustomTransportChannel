@@ -74,6 +74,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AsyncResult.cs" />
+    <Compile Include="TryReceiveAsyncResult.cs" />
     <Compile Include="WebSocketClientChannel.cs" />
     <Compile Include="WebSocketDuplexChannelFactory.cs" />
     <Compile Include="WebSocketDuplexChannelListener.cs" />
