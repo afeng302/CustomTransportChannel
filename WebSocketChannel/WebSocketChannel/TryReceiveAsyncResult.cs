@@ -21,10 +21,10 @@ namespace WebSocketChannel
 
             try
             {
-                IAsyncResult beginReceiveRequestResult = this.channel.BeginReceive(timeout, OnReceive, this);
-                if (beginReceiveRequestResult.CompletedSynchronously)
+                this.RecieveDataAsyncResult = this.channel.BeginReceive(timeout, OnReceive, this);
+                if (this.RecieveDataAsyncResult.CompletedSynchronously)
                 {
-                    CompleteReceive(beginReceiveRequestResult);
+                    CompleteReceive(this.RecieveDataAsyncResult);
                 }
                 else
                 {
@@ -40,6 +40,12 @@ namespace WebSocketChannel
             {
                 base.Complete(true);
             }
+        }
+
+        public IAsyncResult RecieveDataAsyncResult
+        {
+            get;
+            private set;
         }
 
         void CompleteReceive(IAsyncResult result)

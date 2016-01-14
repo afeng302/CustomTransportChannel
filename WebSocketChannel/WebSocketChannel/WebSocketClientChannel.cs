@@ -10,6 +10,8 @@ namespace WebSocketChannel
 {
     class WebSocketClientChannel : ChannelBase, IDuplexChannel
     {
+        const int maxBufferSize = 64 * 1024;
+
         MessageEncoder encoder;
         BufferManager bufferManager;
 
@@ -20,7 +22,7 @@ namespace WebSocketChannel
         OpenAsyncResult openAsyncResult;
 
         Queue<byte[]> receivedDataQueue = new Queue<byte[]>();
-        Queue<ReadDataAsyncResult> readDataAsyncResultQueue = new Queue<ReadDataAsyncResult>();
+        Queue<ReadDataAsyncResultClient> readDataAsyncResultQueue = new Queue<ReadDataAsyncResultClient>();
         public WebSocketClientChannel(MessageEncoder encoder, BufferManager bufferManager, ChannelManagerBase channelManager,
             WebSocket wsClient, EndpointAddress remoteAddress, Uri via)
             : base(channelManager)
@@ -69,7 +71,7 @@ namespace WebSocketChannel
             {
                 if (this.readDataAsyncResultQueue.Count > 0)
                 {
-                    ReadDataAsyncResult result = this.readDataAsyncResultQueue.Dequeue();
+                    ReadDataAsyncResultClient result = this.readDataAsyncResultQueue.Dequeue();
                     result.Complete(false, e.Data);
 
                     return;
@@ -137,7 +139,7 @@ namespace WebSocketChannel
 
         public IAsyncResult BeginReceive(TimeSpan timeout, AsyncCallback callback, object state)
         {
-            ReadDataAsyncResult result = new ReadDataAsyncResult(this, callback, state);
+            ReadDataAsyncResultClient result = new ReadDataAsyncResultClient(callback, state);
 
             // if there is already data received, complete the read async result immediately 
             lock (this.receivedDataQueue)
@@ -176,7 +178,7 @@ namespace WebSocketChannel
 
         public Message EndReceive(IAsyncResult result)
         {
-            byte[] data = ReadDataAsyncResult.End(result);
+            byte[] data = ReadDataAsyncResultClient.End(result);
             if (data == null)
             {
                 return null;
@@ -243,7 +245,23 @@ namespace WebSocketChannel
 
         public void Send(Message message, TimeSpan timeout)
         {
-            throw new NotImplementedException();
+            base.ThrowIfDisposedOrNotOpen();
+
+            ArraySegment<byte> encodedBytes = default(ArraySegment<byte>);
+
+            try
+            {
+                encodedBytes = this.EncodeMessage(message);
+
+                this.wsClient.Send(encodedBytes.Array, encodedBytes.Offset, encodedBytes.Count);
+            }
+            finally
+            {
+                if (encodedBytes.Array != null)
+                {
+                    this.bufferManager.ReturnBuffer(encodedBytes.Array);
+                }
+            }
         }
 
         public void Send(Message message)
@@ -255,6 +273,21 @@ namespace WebSocketChannel
         {
             get { return this.via; }
         }
+
+        ArraySegment<byte> EncodeMessage(Message message)
+        {
+            try
+            {
+                return encoder.WriteMessage(message, maxBufferSize, bufferManager);
+            }
+            finally
+            {
+                // we've consumed the message by serializing it, so clean up
+                message.Close();
+            }
+        }
+
+
     } // class WebSocketClientChannel : ChannelBase, IDuplexChannel
 
     class OpenAsyncResult : AsyncResult
@@ -278,14 +311,13 @@ namespace WebSocketChannel
         {
             AsyncResult.End<OpenAsyncResult>(result);
         }
-    }
+    } // class OpenAsyncResult
 
 
-
-    class ReadDataAsyncResult : AsyncResult
+    class ReadDataAsyncResultClient : AsyncResult
     {
         byte[] data = null;
-        public ReadDataAsyncResult(WebSocketClientChannel channel, AsyncCallback callback, object state)
+        public ReadDataAsyncResultClient(AsyncCallback callback, object state)
             : base(callback, state)
         {
         }
@@ -304,8 +336,8 @@ namespace WebSocketChannel
 
         public static byte[] End(IAsyncResult result)
         {
-            ReadDataAsyncResult thisPtr = AsyncResult.End<ReadDataAsyncResult>(result);
+            ReadDataAsyncResultClient thisPtr = AsyncResult.End<ReadDataAsyncResultClient>(result);
             return thisPtr.data;
         }
-    }
+    } // class ReadDataAsyncResult
 }

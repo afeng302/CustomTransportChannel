@@ -34,11 +34,6 @@ namespace WebSocketChannel
             }
             else if (messageEncoderBindingElements.Count == 1)
             {
-                if (messageEncoderBindingElements[0].MessageVersion != MessageVersion.Soap12WSAddressing10)
-                {
-                    throw new InvalidOperationException("This transport must be used with the an encoding with MessageVersion.Soap12WSAddressing10.");
-                }
-
                 this.encoderFactory = messageEncoderBindingElements[0].CreateMessageEncoderFactory();
             }
             else
@@ -143,7 +138,22 @@ namespace WebSocketChannel
 
         void wsServer_NewDataReceived(WebSocketSession session, byte[] value)
         {
-            throw new NotImplementedException();
+            Console.WriteLine("enter wsServer_NewDataReceived()");
+
+            WebSocketServerChannel channel = null;
+
+            lock (this.channelMap)
+            {
+                if (!this.channelMap.TryGetValue(session, out channel))
+                {
+                    // log
+                    Console.WriteLine("session not found!!!");
+                    return;
+                }
+            }
+
+            // receve data
+            channel.ReceiveData(value);
         }
 
         void wsServer_SessionClosed(WebSocketSession session, SuperSocket.SocketBase.CloseReason value)
@@ -158,6 +168,8 @@ namespace WebSocketChannel
 
         void wsServer_NewSessionConnected(WebSocketSession session)
         {
+            Console.WriteLine("enter wsServer_NewSessionConnected()");
+
             AcceptChannelAsyncResult aysncResult = null;
 
             lock(this.asyncResultQueue)
@@ -197,10 +209,11 @@ namespace WebSocketChannel
 
             public void Complete(IDuplexChannel channel)
             {
+                // set the channel before complete
+                this.channel = channel;
+
                 // the websocket server accpet only support async operation
                 this.Complete(false);
-
-                this.channel = channel;
             }
 
             public static IDuplexChannel End(IAsyncResult result)
