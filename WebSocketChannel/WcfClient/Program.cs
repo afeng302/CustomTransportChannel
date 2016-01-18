@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
+using System.ServiceModel.Description;
 using System.Text;
+using CustomTcpDuplex.Channels;
 using WcfServer;
 using WebSocketChannel;
 
@@ -13,12 +15,25 @@ namespace WcfClient
     {
         static void Main(string[] args)
         {
-            string baseAddress = WebSocketDuplexTransportBindingElement.WebSocketScheme + "://localhost:2012";
+            string baseAddress = WebSocketDuplexTransportBindingElement.WebSocketScheme + "://localhost:12012";
             Binding binding = new CustomBinding(new WebSocketDuplexTransportBindingElement());
+
+            //string baseAddress = "net.tcp://localhost:9999";
+            //Binding binding = new CustomBinding(new NetTcpBinding());
+
+            //string baseAddress = "http://localhost:9999";
+            //Binding binding = new CustomBinding(new WSDualHttpBinding());
+
+            //string baseAddress = SizedTcpDuplexTransportBindingElement.SizedTcpScheme + "://localhost:8000";
+            //Binding binding = new CustomBinding(new SizedTcpDuplexTransportBindingElement());
+
 
             InstanceContext instanceContext = new InstanceContext(new CalculateCallback());
             EndpointAddress endpointAddress = new EndpointAddress(baseAddress);
             DuplexChannelFactory<ICalculator> factory = new DuplexChannelFactory<ICalculator>(instanceContext, binding, endpointAddress);
+            
+            //factory.Endpoint.EndpointBehaviors.Add(new ClientViaBehavior(new Uri("net.tcp://localhost:19999")));
+
             ICalculator proxy = factory.CreateChannel();
             proxy.Add(2, 3);
 

@@ -8,7 +8,8 @@ namespace WcfServer
         void DisplayResult(double x, double y, double result);
     }
 
-    [ServiceContract(CallbackContract = typeof(ICallback))]
+    [ServiceContract(Name = "CalculatorService", //Namespace = "http://www.artechartechartech.com/", 
+        CallbackContract = typeof(ICallback))]
     public interface ICalculator
     {
         [OperationContract]//(IsOneWay = true)]

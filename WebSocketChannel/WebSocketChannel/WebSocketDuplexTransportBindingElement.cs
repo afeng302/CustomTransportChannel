@@ -48,5 +48,15 @@ namespace WebSocketChannel
         {
             return (IChannelListener<TChannel>)(object)new WebSocketDuplexChannelListener(this, context);
         }
+
+        public override T GetProperty<T>(BindingContext context)
+        {
+            if (typeof(T) == typeof(MessageVersion))
+            {
+                return (T)(object)MessageVersion.Soap12WSAddressing10;
+            }
+
+            return base.GetProperty<T>(context);
+        }
     }
 }

@@ -10,6 +10,8 @@ namespace WebSocketChannel
 {
     class WebSocketServerChannel : ChannelBase, IDuplexChannel
     {
+        const int maxBufferSize = 64 * 1024;
+
         MessageEncoder encoder;
         BufferManager bufferManager;
 
@@ -32,6 +34,7 @@ namespace WebSocketChannel
 
             this.wsServer = wsServer;
             this.localAddress = localAddress;
+            //this.localAddress = new EndpointAddress("ws://localhost");
         }
         protected override void OnAbort()
         {
@@ -113,8 +116,7 @@ namespace WebSocketChannel
                 return null;
             }
 
-            ArraySegment<byte> encodedBytes = new ArraySegment<byte>(data, 0, data.Length);
-            return this.encoder.ReadMessage(encodedBytes, this.bufferManager);
+            return this.DecodeMessage(data);
         }
 
         public bool EndTryReceive(IAsyncResult result, out Message message)
@@ -129,7 +131,7 @@ namespace WebSocketChannel
 
         public EndpointAddress LocalAddress
         {
-            get { throw new NotImplementedException(); }
+            get { return this.localAddress; }
         }
 
         public Message Receive(TimeSpan timeout)
@@ -169,17 +171,33 @@ namespace WebSocketChannel
 
         public EndpointAddress RemoteAddress
         {
-            get { throw new NotImplementedException(); }
+            get { return null; }
         }
 
         public void Send(Message message, TimeSpan timeout)
         {
-            throw new NotImplementedException();
+            base.ThrowIfDisposedOrNotOpen();
+
+            ArraySegment<byte> encodedBytes = default(ArraySegment<byte>);
+
+            try
+            {
+                encodedBytes = this.EncodeMessage(message);
+
+                this.wsServer.Send(encodedBytes.Array, encodedBytes.Offset, encodedBytes.Count);
+            }
+            finally
+            {
+                if (encodedBytes.Array != null)
+                {
+                    this.bufferManager.ReturnBuffer(encodedBytes.Array);
+                }
+            }
         }
 
         public void Send(Message message)
         {
-            throw new NotImplementedException();
+            this.Send(message, this.DefaultSendTimeout);
         }
 
         public Uri Via
@@ -194,7 +212,7 @@ namespace WebSocketChannel
                 // log
                 return;
             }
-            
+
             lock (this.recvLocker)
             {
                 // complete the read async result
@@ -209,6 +227,41 @@ namespace WebSocketChannel
                 // there is no read data async result, cache the received data
                 this.receivedDataQueue.Enqueue(data);
             }
+        }
+
+        ArraySegment<byte> EncodeMessage(Message message)
+        {
+            try
+            {
+                return encoder.WriteMessage(message, maxBufferSize, this.bufferManager);
+            }
+            finally
+            {
+                // we've consumed the message by serializing it, so clean up
+                message.Close();
+            }
+        }
+
+        Message DecodeMessage(byte[] data)
+        {
+            // take buffer from buffer manager
+            // the message will be closed later and the buffer will be retured to buffer manager
+            byte[] buffer = this.bufferManager.TakeBuffer(data.Length);
+            data.CopyTo(buffer, 0);
+
+            // Note that we must set the ArraySegment count as data length. The buffer taken from buffer Manager
+            // may have more space for the length required.
+            ArraySegment<byte> encodedBytes = new ArraySegment<byte>(buffer, 0, data.Length); 
+
+            Message msg = this.encoder.ReadMessage(encodedBytes, this.bufferManager);
+            if (msg != null)
+            {
+                msg.Headers.To = this.LocalAddress.Uri;
+                //RemoteEndpointMessageProperty prop = new RemoteEndpointMessageProperty(this.LocalAddress.Uri.Host, this.LocalAddress.Uri.Port);
+                //msg.Properties.Add(RemoteEndpointMessageProperty.Name, prop);
+            }
+
+            return msg;
         }
 
     } // class WebSocketServerChannel : ChannelBase, IDuplexChannel

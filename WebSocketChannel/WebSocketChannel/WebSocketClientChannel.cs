@@ -184,8 +184,7 @@ namespace WebSocketChannel
                 return null;
             }
 
-            ArraySegment<byte> encodedBytes = new ArraySegment<byte>(data, 0, data.Length);
-            return this.encoder.ReadMessage(encodedBytes, this.bufferManager);
+            return this.DecodeMessage(data);
         }
 
         public bool EndTryReceive(IAsyncResult result, out Message message)
@@ -266,7 +265,7 @@ namespace WebSocketChannel
 
         public void Send(Message message)
         {
-            throw new NotImplementedException();
+            this.Send(message, this.DefaultSendTimeout);
         }
 
         public Uri Via
@@ -278,13 +277,29 @@ namespace WebSocketChannel
         {
             try
             {
-                return encoder.WriteMessage(message, maxBufferSize, bufferManager);
+                return encoder.WriteMessage(message, maxBufferSize, this.bufferManager);
             }
             finally
             {
                 // we've consumed the message by serializing it, so clean up
                 message.Close();
             }
+        }
+
+        Message DecodeMessage(byte[] data)
+        {
+            // take buffer from buffer manager
+            // the message will be closed later and the buffer will be retured to buffer manager
+            byte[] buffer = this.bufferManager.TakeBuffer(data.Length);
+            data.CopyTo(buffer, 0);
+
+            // Note that we must set the ArraySegment count as data length. The buffer taken from buffer Manager
+            // may have more space for the length required.
+            ArraySegment<byte> encodedBytes = new ArraySegment<byte>(buffer, 0, data.Length);
+
+            Message msg = this.encoder.ReadMessage(encodedBytes, this.bufferManager);
+
+            return msg;
         }
 
 
