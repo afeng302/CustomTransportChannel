@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Net;
 using System.ServiceModel.Channels;
 using System.Text;
 using WebSocket4Net;
@@ -39,6 +40,16 @@ namespace WebSocketChannel
         protected override IDuplexChannel OnCreateChannel(System.ServiceModel.EndpointAddress address, Uri via)
         {
             WebSocket wsSocket = new WebSocket(address.Uri.ToString());
+
+            // check if need web proxy to access server
+            Uri serviceUrl = new Uri(string.Format("http://{0}", address.Uri.Host));
+            Uri proxyUri = WebRequest.DefaultWebProxy.GetProxy(serviceUrl);
+            if (serviceUrl != proxyUri)
+            {
+                Console.WriteLine("use proxy: [" + proxyUri.ToString() + "]");
+                HttpConnectProxy proxy = new HttpConnectProxy(new DnsEndPoint(proxyUri.Host, proxyUri.Port));
+                wsSocket.Proxy = proxy;
+            }
 
             return new WebSocketClientChannel(this.encoderFactory.Encoder, this.bufferManager, this, wsSocket, address, via);
         }
