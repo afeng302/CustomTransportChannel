@@ -78,6 +78,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AsyncResult.cs" />
+    <Compile Include="HttpConnectProxy.cs" />
+    <Compile Include="ProxyConnectorBase.cs" />
     <Compile Include="TryReceiveAsyncResult.cs" />
     <Compile Include="WebSocketClientChannel.cs" />
     <Compile Include="WebSocketDuplexChannelFactory.cs" />
