@@ -8,11 +8,13 @@ namespace WcfServer
         void DisplayResult(double x, double y, double result);
     }
 
-    [ServiceContract(Name = "CalculatorService", //Namespace = "http://www.artechartechartech.com/", 
-        CallbackContract = typeof(ICallback))]
+    [ServiceContract(Name = "CalculatorService", SessionMode = SessionMode .Required, CallbackContract = typeof(ICallback))]
     public interface ICalculator
     {
         [OperationContract]//(IsOneWay = true)]
         void Add(double x, double y);
+
+        [OperationContract]
+        void DisplayCounter();
     }
 }

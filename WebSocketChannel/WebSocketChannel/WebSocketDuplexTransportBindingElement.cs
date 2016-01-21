@@ -31,7 +31,7 @@ namespace WebSocketChannel
 
         public override bool CanBuildChannelFactory<TChannel>(BindingContext context)
         {
-            return typeof(TChannel) == typeof(IDuplexChannel);
+            return typeof(TChannel) == typeof(IDuplexSessionChannel);
         }
 
         public override IChannelFactory<TChannel> BuildChannelFactory<TChannel>(BindingContext context)
@@ -41,7 +41,7 @@ namespace WebSocketChannel
 
         public override bool CanBuildChannelListener<TChannel>(BindingContext context)
         {
-            return typeof(TChannel) == typeof(IDuplexChannel);
+            return typeof(TChannel) == typeof(IDuplexSessionChannel);
         }
 
         public override IChannelListener<TChannel> BuildChannelListener<TChannel>(BindingContext context)

@@ -8,7 +8,7 @@ using SuperWebSocket;
 
 namespace WebSocketChannel
 {
-    class WebSocketServerChannel : ChannelBase, IDuplexChannel
+    class WebSocketServerChannel : ChannelBase, IDuplexSessionChannel 
     {
         const int maxBufferSize = 64 * 1024;
 
@@ -17,6 +17,7 @@ namespace WebSocketChannel
 
         WebSocketSession wsServer = null;
         EndpointAddress localAddress = null;
+        EndpointAddress remoteAddress = null;
 
         Queue<byte[]> receivedDataQueue = new Queue<byte[]>();
         Queue<ReadDataAsyncResultServer> readDataAsyncResultQueue = new Queue<ReadDataAsyncResultServer>();
@@ -34,7 +35,8 @@ namespace WebSocketChannel
 
             this.wsServer = wsServer;
             this.localAddress = localAddress;
-            //this.localAddress = new EndpointAddress("ws://localhost");
+
+            this.Session = new ConnectionDuplexSession();
         }
         protected override void OnAbort()
         {
@@ -56,6 +58,7 @@ namespace WebSocketChannel
         protected override void OnClose(TimeSpan timeout)
         {
             this.wsServer.Close();
+            
         }
 
         protected override void OnEndClose(IAsyncResult result)
@@ -171,7 +174,7 @@ namespace WebSocketChannel
 
         public EndpointAddress RemoteAddress
         {
-            get { return null; }
+            get { return this.remoteAddress; }
         }
 
         public void Send(Message message, TimeSpan timeout)
@@ -207,11 +210,11 @@ namespace WebSocketChannel
 
         public void ReceiveData(byte[] data)
         {
-            if (data == null)
-            {
-                // log
-                return;
-            }
+            //if (data == null)
+            //{
+            //    // log
+            //    return;
+            //}
 
             lock (this.recvLocker)
             {
@@ -219,7 +222,14 @@ namespace WebSocketChannel
                 if (this.readDataAsyncResultQueue.Count > 0)
                 {
                     ReadDataAsyncResultServer result = this.readDataAsyncResultQueue.Dequeue();
-                    result.Complete(false, data);
+                    if (data != null)
+                    {
+                        result.Complete(false, data);
+                    }
+                    else
+                    {
+                        result.Complete(new TimeoutException());
+                    }
 
                     return;
                 }
@@ -262,6 +272,12 @@ namespace WebSocketChannel
             }
 
             return msg;
+        }
+
+        public IDuplexSession Session
+        {
+            get;
+            private set;
         }
 
     } // class WebSocketServerChannel : ChannelBase, IDuplexChannel

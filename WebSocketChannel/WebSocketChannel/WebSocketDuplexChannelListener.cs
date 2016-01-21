@@ -153,15 +153,29 @@ namespace WebSocketChannel
             }
 
             // receve data
+            //System.Threading.Tasks.Task t = System.Threading.Tasks.Task.Factory.StartNew(() => channel.ReceiveData(value));
+
             channel.ReceiveData(value);
         }
 
         void wsServer_SessionClosed(WebSocketSession session, SuperSocket.SocketBase.CloseReason value)
         {
+            WebSocketServerChannel channel = null;
+
             lock (this.channelMap)
             {
+                if (!this.channelMap.TryGetValue(session, out channel))
+                {
+                    // log
+                    Console.WriteLine("session not found!!!");
+                    return;
+                }
+
                 this.channelMap.Remove(session);
             }
+
+            channel.ReceiveData(null);
+            channel.Close();
 
             // log
         }

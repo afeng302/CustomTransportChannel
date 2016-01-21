@@ -42,14 +42,16 @@ namespace WebSocketChannel
             WebSocket wsSocket = new WebSocket(address.Uri.ToString());
 
             // check if need web proxy to access server
-            Uri serviceUrl = new Uri(string.Format("http://{0}", address.Uri.Host));
-            Uri proxyUri = WebRequest.DefaultWebProxy.GetProxy(serviceUrl);
-            if (serviceUrl != proxyUri)
-            {
-                Console.WriteLine("use proxy: [" + proxyUri.ToString() + "]");
-                HttpConnectProxy proxy = new HttpConnectProxy(new DnsEndPoint(proxyUri.Host, proxyUri.Port));
-                wsSocket.Proxy = proxy;
-            }
+            //Uri serviceUrl = new Uri(string.Format("http://{0}", address.Uri.Host));
+            //Uri proxyUri = WebRequest.DefaultWebProxy.GetProxy(serviceUrl);
+            //if (serviceUrl != proxyUri)
+            //{
+            //    Console.WriteLine("use proxy: [" + proxyUri.ToString() + "]");
+            //    HttpConnectProxy proxy = new HttpConnectProxy(new DnsEndPoint(proxyUri.Host, proxyUri.Port));
+            //    proxy.UserName = "testuser2";
+            //    proxy.Password = "12345678";
+            //    wsSocket.Proxy = proxy;
+            //}
 
             return new WebSocketClientChannel(this.encoderFactory.Encoder, this.bufferManager, this, wsSocket, address, via);
         }

@@ -8,7 +8,7 @@ using WebSocket4Net;
 
 namespace WebSocketChannel
 {
-    class WebSocketClientChannel : ChannelBase, IDuplexChannel
+    class WebSocketClientChannel : ChannelBase, IDuplexSessionChannel
     {
         const int maxBufferSize = 64 * 1024;
 
@@ -39,6 +39,8 @@ namespace WebSocketChannel
             this.wsClient.MessageReceived += wsClient_MessageReceived;
             this.wsClient.Error += wsClient_Error;
             this.wsClient.Opened += wsClient_Opened;
+
+            this.Session = new ConnectionDuplexSession();
         }
 
 
@@ -303,6 +305,12 @@ namespace WebSocketChannel
         }
 
 
+
+        public IDuplexSession Session
+        {
+            get;
+            private set;
+        }
     } // class WebSocketClientChannel : ChannelBase, IDuplexChannel
 
     class OpenAsyncResult : AsyncResult
