@@ -156,9 +156,9 @@ namespace CustomTcpDuplex.Channels
                 if (result != null)
                 {
                     result.Headers.To = this.LocalAddress.Uri;
-                    //IPEndPoint remoteEndpoint = (IPEndPoint)this.dataSocket.RemoteEndPoint;
-                    //RemoteEndpointMessageProperty property = new RemoteEndpointMessageProperty(remoteEndpoint.Address.ToString(), remoteEndpoint.Port);
-                    //result.Properties.Add(RemoteEndpointMessageProperty.Name, property);
+                    IPEndPoint remoteEndpoint = (IPEndPoint)this.dataSocket.RemoteEndPoint;
+                    RemoteEndpointMessageProperty property = new RemoteEndpointMessageProperty(remoteEndpoint.Address.ToString(), remoteEndpoint.Port);
+                    result.Properties.Add(RemoteEndpointMessageProperty.Name, property);
                 }
 
                 return result;

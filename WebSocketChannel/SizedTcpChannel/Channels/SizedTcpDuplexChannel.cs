@@ -32,25 +32,25 @@ namespace CustomTcpDuplex.Channels
             this.socket = socket;
             base.InitializeSocket(socket);
 
-            //if (this.remoteAddress == null)
-            //{
-            //    IPEndPoint remoteEndpoint = (IPEndPoint)socket.RemoteEndPoint;
-            //    UriBuilder builder = new UriBuilder(
-            //        SizedTcpDuplexTransportBindingElement.SizedTcpScheme,
-            //        remoteEndpoint.Address.ToString(),
-            //        remoteEndpoint.Port);
-            //    this.remoteAddress = new EndpointAddress(builder.Uri);
-            //}
+            if (this.remoteAddress == null)
+            {
+                IPEndPoint remoteEndpoint = (IPEndPoint)socket.RemoteEndPoint;
+                UriBuilder builder = new UriBuilder(
+                    SizedTcpDuplexTransportBindingElement.SizedTcpScheme,
+                    remoteEndpoint.Address.ToString(),
+                    remoteEndpoint.Port);
+                this.remoteAddress = new EndpointAddress(builder.Uri);
+            }
 
-            //if (this.localAddress == null)
-            //{
-            //    IPEndPoint localEndpoint = (IPEndPoint)socket.LocalEndPoint;
-            //    UriBuilder builder = new UriBuilder(
-            //        SizedTcpDuplexTransportBindingElement.SizedTcpScheme,
-            //        localEndpoint.Address.ToString(),
-            //        localEndpoint.Port);
-            //    this.localAddress = new EndpointAddress(builder.Uri);
-            //}
+            if (this.localAddress == null)
+            {
+                IPEndPoint localEndpoint = (IPEndPoint)socket.LocalEndPoint;
+                UriBuilder builder = new UriBuilder(
+                    SizedTcpDuplexTransportBindingElement.SizedTcpScheme,
+                    localEndpoint.Address.ToString(),
+                    localEndpoint.Port);
+                this.localAddress = new EndpointAddress(builder.Uri);
+            }
         }
 
         #region IInputChannel Members

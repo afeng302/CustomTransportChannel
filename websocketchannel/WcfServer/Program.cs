@@ -14,13 +14,13 @@ namespace WcfServer
     {
         static void Main(string[] args)
         {
-            string baseAddress = WebSocketDuplexTransportBindingElement.WebSocketScheme + "://127.0.0.1:12012";
-            ServiceHost host = new ServiceHost(typeof(CalculatorService), new Uri(baseAddress));
-            Binding binding = new CustomBinding(new WebSocketDuplexTransportBindingElement());
-
-            //string baseAddress = "net.tcp://localhost:9999";
+            //string baseAddress = WebSocketDuplexTransportBindingElement.WebSocketScheme + "://localhost:12012";
             //ServiceHost host = new ServiceHost(typeof(CalculatorService), new Uri(baseAddress));
-            //Binding binding = new CustomBinding(new NetTcpBinding());
+            //Binding binding = new CustomBinding(new WebSocketDuplexTransportBindingElement());
+
+            string baseAddress = "net.tcp://localhost:9999";
+            ServiceHost host = new ServiceHost(typeof(CalculatorService), new Uri(baseAddress));
+            Binding binding = new CustomBinding(new NetTcpBinding());
 
             //string baseAddress = "http://localhost:9999";
             //ServiceHost host = new ServiceHost(typeof(CalculatorService), new Uri(baseAddress));

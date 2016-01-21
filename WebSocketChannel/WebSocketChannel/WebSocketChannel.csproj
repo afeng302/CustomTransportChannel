@@ -78,6 +78,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AsyncResult.cs" />
+    <Compile Include="ConnectionDuplexSession.cs" />
     <Compile Include="HttpConnectProxy.cs" />
     <Compile Include="ProxyConnectorBase.cs" />
     <Compile Include="TryReceiveAsyncResult.cs" />
