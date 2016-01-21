@@ -9,7 +9,7 @@ using WebSocket4Net;
 
 namespace WebSocketChannel
 {
-    class WebSocketDuplexChannelFactory : ChannelFactoryBase<IDuplexChannel>
+    class WebSocketDuplexChannelFactory : ChannelFactoryBase<IDuplexSessionChannel>
     {
         BufferManager bufferManager;
         MessageEncoderFactory encoderFactory;
@@ -37,7 +37,7 @@ namespace WebSocketChannel
             }
         }
 
-        protected override IDuplexChannel OnCreateChannel(System.ServiceModel.EndpointAddress address, Uri via)
+        protected override IDuplexSessionChannel OnCreateChannel(System.ServiceModel.EndpointAddress address, Uri via)
         {
             WebSocket wsSocket = new WebSocket(address.Uri.ToString());
 

@@ -9,7 +9,7 @@ using SuperWebSocket;
 
 namespace WebSocketChannel
 {
-    class WebSocketDuplexChannelListener : ChannelListenerBase<IDuplexChannel>
+    class WebSocketDuplexChannelListener : ChannelListenerBase<IDuplexSessionChannel>
     {
         BufferManager bufferManager;
         MessageEncoderFactory encoderFactory;
@@ -43,7 +43,7 @@ namespace WebSocketChannel
 
             this.uri = new Uri(context.ListenUriBaseAddress, context.ListenUriRelativeAddress);
         }
-        protected override IDuplexChannel OnAcceptChannel(TimeSpan timeout)
+        protected override IDuplexSessionChannel OnAcceptChannel(TimeSpan timeout)
         {
             throw new NotImplementedException();
         }
@@ -60,7 +60,7 @@ namespace WebSocketChannel
             return asyncResult;
         }
 
-        protected override IDuplexChannel OnEndAcceptChannel(IAsyncResult result)
+        protected override IDuplexSessionChannel OnEndAcceptChannel(IAsyncResult result)
         {
             return AcceptChannelAsyncResult.End(result);
         }
@@ -215,13 +215,13 @@ namespace WebSocketChannel
 
         class AcceptChannelAsyncResult : AsyncResult
         {
-            IDuplexChannel channel;
+            IDuplexSessionChannel channel;
             public AcceptChannelAsyncResult(AsyncCallback callback, object state)
                 : base(callback, state)
             {
             }
 
-            public void Complete(IDuplexChannel channel)
+            public void Complete(IDuplexSessionChannel channel)
             {
                 // set the channel before complete
                 this.channel = channel;
@@ -230,7 +230,7 @@ namespace WebSocketChannel
                 this.Complete(false);
             }
 
-            public static IDuplexChannel End(IAsyncResult result)
+            public static IDuplexSessionChannel End(IAsyncResult result)
             {
                 AcceptChannelAsyncResult thisPtr = AsyncResult.End<AcceptChannelAsyncResult>(result);
                 return thisPtr.channel;

@@ -17,11 +17,11 @@ namespace WcfClient
         {
             //string baseAddress = WebSocketDuplexTransportBindingElement.WebSocketScheme + "://112.74.207.57:12012";
             //string baseAddress = WebSocketDuplexTransportBindingElement.WebSocketScheme + "://a23126-04:12012";
-            //string baseAddress = WebSocketDuplexTransportBindingElement.WebSocketScheme + "://localhost:12012";
-            //Binding binding = new CustomBinding(new WebSocketDuplexTransportBindingElement());
+            string baseAddress = WebSocketDuplexTransportBindingElement.WebSocketScheme + "://localhost:12012";
+            Binding binding = new CustomBinding(new WebSocketDuplexTransportBindingElement());
 
-            string baseAddress = "net.tcp://localhost:9999";
-            Binding binding = new CustomBinding(new NetTcpBinding());
+            //string baseAddress = "net.tcp://localhost:9999";
+            //Binding binding = new CustomBinding(new NetTcpBinding());
 
             //string baseAddress = "http://localhost:9999";
             //Binding binding = new CustomBinding(new WSDualHttpBinding());
