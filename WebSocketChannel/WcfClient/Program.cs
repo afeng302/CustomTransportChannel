@@ -17,8 +17,8 @@ namespace WcfClient
         {
             //string baseAddress = WebSocketDuplexTransportBindingElement.WebSocketScheme + "://112.74.207.57:12012";
             //string baseAddress = WebSocketDuplexTransportBindingElement.WebSocketScheme + "://a23126-04:12012";
-            string baseAddress = WebSocketDuplexTransportBindingElement.WebSocketScheme + "://localhost:12012";
-            Binding binding = new CustomBinding(new WebSocketDuplexTransportBindingElement());
+            //string baseAddress = WebSocketTransportBindingElement.WebSocketScheme + "://localhost:12012";
+            //Binding binding = new CustomBinding(new WebSocketTransportBindingElement());
 
             //string baseAddress = "net.tcp://localhost:9999";
             //Binding binding = new CustomBinding(new NetTcpBinding());
@@ -30,11 +30,14 @@ namespace WcfClient
             //Binding binding = new CustomBinding(new SizedTcpDuplexTransportBindingElement());
 
 
-            InstanceContext instanceContext = new InstanceContext(new CalculateCallback());
-            EndpointAddress endpointAddress = new EndpointAddress(baseAddress);
-            DuplexChannelFactory<ICalculator> factory = new DuplexChannelFactory<ICalculator>(instanceContext, binding, endpointAddress);
+            //InstanceContext instanceContext = new InstanceContext(new CalculateCallback());
+            //EndpointAddress endpointAddress = new EndpointAddress(baseAddress);
+            //DuplexChannelFactory<ICalculator> factory = new DuplexChannelFactory<ICalculator>(instanceContext, binding, endpointAddress);
             
             //factory.Endpoint.EndpointBehaviors.Add(new ClientViaBehavior(new Uri("net.tcp://localhost:19999")));
+
+            InstanceContext instanceContext = new InstanceContext(new CalculateCallback());
+            DuplexChannelFactory<ICalculator> factory = new DuplexChannelFactory<ICalculator>(instanceContext, "CalculatorClient");
 
             ICalculator proxy = factory.CreateChannel();
             proxy.Add(2, 3);

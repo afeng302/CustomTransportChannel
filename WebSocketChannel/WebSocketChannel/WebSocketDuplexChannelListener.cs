@@ -17,13 +17,13 @@ namespace WebSocketChannel
         Uri uri = null;
         Queue<AcceptChannelAsyncResult> asyncResultQueue = new Queue<AcceptChannelAsyncResult>();
         Dictionary<WebSocketSession, WebSocketServerChannel> channelMap = new Dictionary<WebSocketSession, WebSocketServerChannel>();
-
-        public WebSocketDuplexChannelListener(WebSocketDuplexTransportBindingElement bindingElement, BindingContext context)
+        int receiveBufferSize;
+        public WebSocketDuplexChannelListener(WebSocketTransportBindingElement bindingElement, BindingContext context)
             : base(context.Binding)
         {
             // populate members from binding element
-            int maxBufferSize = (int)bindingElement.MaxReceivedMessageSize;
-            this.bufferManager = BufferManager.CreateBufferManager(bindingElement.MaxBufferPoolSize, maxBufferSize);
+            receiveBufferSize = (int)bindingElement.ReceiveBufferSize;
+            this.bufferManager = BufferManager.CreateBufferManager(bindingElement.MaxBufferPoolSize, receiveBufferSize);
 
             Collection<MessageEncodingBindingElement> messageEncoderBindingElements
                 = context.BindingParameters.FindAll<MessageEncodingBindingElement>();
@@ -174,7 +174,7 @@ namespace WebSocketChannel
                 this.channelMap.Remove(session);
             }
 
-            channel.ReceiveData(null);
+            //channel.ReceiveData(null);
             channel.Close();
 
             // log

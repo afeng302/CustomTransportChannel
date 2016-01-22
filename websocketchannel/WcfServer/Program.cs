@@ -14,9 +14,9 @@ namespace WcfServer
     {
         static void Main(string[] args)
         {
-            string baseAddress = WebSocketDuplexTransportBindingElement.WebSocketScheme + "://localhost:12012";
-            ServiceHost host = new ServiceHost(typeof(CalculatorService), new Uri(baseAddress));
-            Binding binding = new CustomBinding(new WebSocketDuplexTransportBindingElement());
+            //string baseAddress = WebSocketTransportBindingElement.WebSocketScheme + "://localhost:12012";
+            //ServiceHost host = new ServiceHost(typeof(CalculatorService), new Uri(baseAddress));
+            Binding binding = new CustomBinding(new WebSocketTransportBindingElement());
 
             //string baseAddress = "net.tcp://localhost:9999";
             //ServiceHost host = new ServiceHost(typeof(CalculatorService), new Uri(baseAddress));
@@ -30,8 +30,10 @@ namespace WcfServer
             //ServiceHost host = new ServiceHost(typeof(CalculatorService), new Uri(baseAddress));
             //Binding binding = new CustomBinding(new SizedTcpDuplexTransportBindingElement());
 
-            ServiceEndpoint endpoint = host.AddServiceEndpoint(typeof(ICalculator), binding, "");
+            //ServiceEndpoint endpoint = host.AddServiceEndpoint(typeof(ICalculator), binding, "");
 
+
+            ServiceHost host = new ServiceHost(typeof(CalculatorService));
             host.Open();
             Console.WriteLine("Host opened");
 

@@ -82,12 +82,15 @@
     <Compile Include="HttpConnectProxy.cs" />
     <Compile Include="ProxyConnectorBase.cs" />
     <Compile Include="TryReceiveAsyncResult.cs" />
+    <Compile Include="WebSocketBinding.cs" />
+    <Compile Include="WebSocketBindingCollectionElement.cs" />
     <Compile Include="WebSocketClientChannel.cs" />
     <Compile Include="WebSocketDuplexChannelFactory.cs" />
     <Compile Include="WebSocketDuplexChannelListener.cs" />
-    <Compile Include="WebSocketDuplexTransportBindingElement.cs" />
+    <Compile Include="WebSocketTransportBindingElement.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="WebSocketServerChannel.cs" />
+    <Compile Include="WebSocketBindingElement.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
