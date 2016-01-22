@@ -16,8 +16,6 @@ namespace WcfServer
             double result = x + y;
             ICallback callback = OperationContext.Current.GetCallbackChannel<ICallback>();
 
-            Console.WriteLine("OperationContext.Current.Channel.State = " + OperationContext.Current.Channel.State.ToString());
-
             callback.DisplayResult(x, y, result);
 
             Console.WriteLine("callback DisplayResult() returned.");
@@ -26,6 +24,21 @@ namespace WcfServer
         public void DisplayCounter()
         {
             Console.WriteLine("iCounter=" + iCounter);
+        }
+
+        public  void SendBulkData(byte[] data)
+        {
+            Console.WriteLine("received data: " + data.Length);
+
+            Console.WriteLine("sending data back ...");
+
+            data = new byte[2048];
+
+            ICallback callback = OperationContext.Current.GetCallbackChannel<ICallback>();
+            DateTime t0 = DateTime.Now;
+            callback.SendBulkDataBack(data);
+            DateTime t1 = DateTime.Now;
+            Console.WriteLine("timespan: " + (t1 - t0).TotalMilliseconds);
         }
     }
 }

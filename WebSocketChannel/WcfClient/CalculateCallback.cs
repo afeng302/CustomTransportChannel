@@ -9,5 +9,11 @@ namespace WcfClient
         {
             Console.WriteLine("In DisplayResult: x + y = {2} when x = {0} and y = {1}", x, y, result);
         }
+
+
+        public void SendBulkDataBack(byte[] data)
+        {
+            Console.WriteLine("received data: " + data.Length);
+        }
     }
 }

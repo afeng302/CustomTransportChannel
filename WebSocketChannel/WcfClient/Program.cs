@@ -33,20 +33,38 @@ namespace WcfClient
             //InstanceContext instanceContext = new InstanceContext(new CalculateCallback());
             //EndpointAddress endpointAddress = new EndpointAddress(baseAddress);
             //DuplexChannelFactory<ICalculator> factory = new DuplexChannelFactory<ICalculator>(instanceContext, binding, endpointAddress);
-            
+
             //factory.Endpoint.EndpointBehaviors.Add(new ClientViaBehavior(new Uri("net.tcp://localhost:19999")));
 
             InstanceContext instanceContext = new InstanceContext(new CalculateCallback());
             DuplexChannelFactory<ICalculator> factory = new DuplexChannelFactory<ICalculator>(instanceContext, "CalculatorClient");
 
             ICalculator proxy = factory.CreateChannel();
-            proxy.Add(2, 3);
+            //proxy.Add(2, 3);
 
-            proxy.DisplayCounter();
+            //proxy.DisplayCounter();
 
-            Console.WriteLine("Add() returned.");
+            //Console.WriteLine("Add() returned.");
 
-            Console.ReadKey();
+            byte[] data = new byte[1024];
+            for (int i = 0; i < 1024; i++)
+            {
+                data[i] = 0x01;
+            }
+
+            while (true)
+            {
+                Console.WriteLine("sending data");
+
+                DateTime t0 = DateTime.Now;
+                proxy.SendBulkData(data);
+                DateTime t1 = DateTime.Now;
+
+                Console.WriteLine("timespan: " + (t1 - t0).TotalMilliseconds);
+
+                System.Threading.Thread.Sleep(1000);
+            }
+
         }
     }
 }

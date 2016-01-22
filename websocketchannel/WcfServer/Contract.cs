@@ -6,6 +6,9 @@ namespace WcfServer
     {
         [OperationContract(IsOneWay = true)]
         void DisplayResult(double x, double y, double result);
+
+        [OperationContract(IsOneWay = true)]
+        void SendBulkDataBack(byte[] data);
     }
 
     [ServiceContract(Name = "CalculatorService", SessionMode = SessionMode .Required, CallbackContract = typeof(ICallback))]
@@ -16,5 +19,8 @@ namespace WcfServer
 
         [OperationContract]
         void DisplayCounter();
+
+        [OperationContract]
+        void SendBulkData(byte[] data);
     }
 }
