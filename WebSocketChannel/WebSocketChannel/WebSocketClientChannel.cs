@@ -53,10 +53,16 @@ namespace WebSocketChannel
 
         void wsClient_Error(object sender, SuperSocket.ClientEngine.ErrorEventArgs e)
         {
-            if (this.openAsyncResult != null)
+            // log the error
+            logger.ErrorFormat("websocket error happened. message[{0}]\r\nStackTrace", 
+                e.Exception.Message, e.Exception.StackTrace);
+
+            // put the channel into Faulted state
+            if ((this.openAsyncResult != null) && !this.openAsyncResult.IsCompleted)
             {
-                this.openAsyncResult.Complete(e.Exception);
+                this.openAsyncResult.Complete();
             }
+            this.Fault();
         }
 
         void wsClient_DataReceived(object sender, DataReceivedEventArgs e)
