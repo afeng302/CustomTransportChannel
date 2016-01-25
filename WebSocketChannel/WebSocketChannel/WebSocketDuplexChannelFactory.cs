@@ -1,10 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
 using System.Net;
 using System.ServiceModel.Channels;
 using System.Text;
+using log4net;
 using WebSocket4Net;
 
 namespace WebSocketChannel
@@ -51,6 +50,8 @@ namespace WebSocketChannel
 
         protected override IDuplexSessionChannel OnCreateChannel(System.ServiceModel.EndpointAddress address, Uri via)
         {
+            logger.InfoFormat("OnCreateChannel(). address[{0}], via[{1}]", address, via);
+
             WebSocket wsSocket = new WebSocket(address.Uri.ToString());
             wsSocket.ReceiveBufferSize = this.receiveBuffSize;
 
@@ -62,6 +63,7 @@ namespace WebSocketChannel
                 if (serviceUrl != proxyUri)
                 {
                     Console.WriteLine("use proxy: [" + proxyUri.ToString() + "]");
+                    logger.InfoFormat("http proxy[{0}] will be used in the connection.", proxyUri);
 
                     IPAddress ip;
                     EndPoint proxyEndPoint;
@@ -98,6 +100,9 @@ namespace WebSocketChannel
 
         protected override void OnOpen(TimeSpan timeout)
         {
+            logger.Info("OnOpen");
         }
+
+        private static readonly ILog logger = LogManager.GetLogger(typeof(WebSocketDuplexChannelFactory));
     }
 }

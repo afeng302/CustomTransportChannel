@@ -4,6 +4,7 @@ using System.Linq;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
 using System.Text;
+using log4net;
 using SuperWebSocket;
 
 namespace WebSocketChannel
@@ -40,7 +41,12 @@ namespace WebSocketChannel
         }
         protected override void OnAbort()
         {
-            throw new NotImplementedException();
+            logger.Error("OnAbort()");
+
+            if(this.wsServer.Connected)
+            {
+                this.wsServer.Close();
+            }
         }
 
         protected override IAsyncResult OnBeginClose(TimeSpan timeout, AsyncCallback callback, object state)
@@ -57,8 +63,12 @@ namespace WebSocketChannel
 
         protected override void OnClose(TimeSpan timeout)
         {
-            this.wsServer.Close();
-            
+            logger.Info("OnClose()...");
+
+            if (this.wsServer.Connected)
+            {
+                this.wsServer.Close();
+            }
         }
 
         protected override void OnEndClose(IAsyncResult result)
@@ -73,6 +83,7 @@ namespace WebSocketChannel
 
         protected override void OnOpen(TimeSpan timeout)
         {
+            logger.Info("OnOpen()...");
         }
 
         public IAsyncResult BeginReceive(TimeSpan timeout, AsyncCallback callback, object state)
@@ -179,6 +190,8 @@ namespace WebSocketChannel
 
         public void Send(Message message, TimeSpan timeout)
         {
+            logger.DebugFormat("sending message...");
+
             base.ThrowIfDisposedOrNotOpen();
 
             ArraySegment<byte> encodedBytes = default(ArraySegment<byte>);
@@ -210,11 +223,11 @@ namespace WebSocketChannel
 
         public void ReceiveData(byte[] data)
         {
-            //if (data == null)
-            //{
-            //    // log
-            //    return;
-            //}
+            if (data == null)
+            {
+                logger.Error("received null data");
+                return;
+            }
 
             lock (this.recvLocker)
             {
@@ -280,6 +293,7 @@ namespace WebSocketChannel
             private set;
         }
 
+        private static readonly ILog logger = LogManager.GetLogger(typeof(WebSocketServerChannel));
     } // class WebSocketServerChannel : ChannelBase, IDuplexChannel
 
     class ReadDataAsyncResultServer : AsyncResult
@@ -292,6 +306,15 @@ namespace WebSocketChannel
 
         public void Complete(bool completedSynchronously, byte[] data)
         {
+            if (data != null)
+            {
+                logger.DebugFormat("Complete. data length[{0}].", data.Length);
+            }
+            else
+            {
+                logger.Error("null data received");
+            }
+
             this.data = data;
 
             this.Complete(completedSynchronously);
@@ -307,5 +330,7 @@ namespace WebSocketChannel
             ReadDataAsyncResultServer thisPtr = AsyncResult.End<ReadDataAsyncResultServer>(result);
             return thisPtr.data;
         }
+
+        private static readonly ILog logger = LogManager.GetLogger(typeof(ReadDataAsyncResultServer));
     } // class ReadDataAsyncResult : AsyncResult
 }

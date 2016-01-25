@@ -5,6 +5,7 @@ using System.Globalization;
 using System.Linq;
 using System.ServiceModel.Configuration;
 using System.Text;
+using log4net;
 
 namespace WebSocketChannel
 {
@@ -91,5 +92,7 @@ namespace WebSocketChannel
             get { return (int)base[ReceiveBufferSizePropertyName]; }
             set { base[ReceiveBufferSizePropertyName] = value; }
         }
+
+        private static readonly ILog logger = LogManager.GetLogger(typeof(WebSocketBindingElement));
     }
 }

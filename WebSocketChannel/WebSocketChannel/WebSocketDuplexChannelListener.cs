@@ -5,6 +5,7 @@ using System.Linq;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
 using System.Text;
+using log4net;
 using SuperWebSocket;
 
 namespace WebSocketChannel
@@ -152,9 +153,11 @@ namespace WebSocketChannel
                 }
             }
 
-            // receve data
-            //System.Threading.Tasks.Task t = System.Threading.Tasks.Task.Factory.StartNew(() => channel.ReceiveData(value));
+            // log
+            logger.DebugFormat("data recieved [{0}] at channel [{1}].",
+                value != null ? value.Length.ToString() : "null", channel.GetHashCode());
 
+            // receve data
             channel.ReceiveData(value);
         }
 
@@ -178,6 +181,7 @@ namespace WebSocketChannel
             channel.Close();
 
             // log
+            logger.InfoFormat("channel[{0}] colsed. total channel number [{1}]", channel.GetHashCode(), this.channelMap.Count);
         }
 
         void wsServer_NewSessionConnected(WebSocketSession session)
@@ -186,7 +190,7 @@ namespace WebSocketChannel
 
             AcceptChannelAsyncResult aysncResult = null;
 
-            lock(this.asyncResultQueue)
+            lock (this.asyncResultQueue)
             {
                 if (this.asyncResultQueue.Count == 0)
                 {
@@ -198,7 +202,7 @@ namespace WebSocketChannel
 
             WebSocketServerChannel channel = new WebSocketServerChannel(this.encoderFactory.Encoder, this.bufferManager,
                 this, session, new EndpointAddress(this.uri));
-            lock(this.channelMap)
+            lock (this.channelMap)
             {
                 this.channelMap[session] = channel;
             }
@@ -206,12 +210,17 @@ namespace WebSocketChannel
             aysncResult.Complete(channel);
 
             // log
+            logger.InfoFormat("new server channel[{0}] created. total channel number: [{1}]", channel.GetHashCode(), this.channelMap.Count);
         }
 
         private void Stop()
         {
+            logger.Info("Stop()");
+
             this.wsServer.Stop();
         }
+
+        private static readonly ILog logger = LogManager.GetLogger(typeof(WebSocketDuplexChannelListener));
 
         class AcceptChannelAsyncResult : AsyncResult
         {
@@ -223,6 +232,8 @@ namespace WebSocketChannel
 
             public void Complete(IDuplexSessionChannel channel)
             {
+                logger.Info("Complete()");
+
                 // set the channel before complete
                 this.channel = channel;
 
@@ -235,6 +246,8 @@ namespace WebSocketChannel
                 AcceptChannelAsyncResult thisPtr = AsyncResult.End<AcceptChannelAsyncResult>(result);
                 return thisPtr.channel;
             }
+
+            private static readonly ILog logger = LogManager.GetLogger(typeof(AcceptChannelAsyncResult));
         }
     }
 }

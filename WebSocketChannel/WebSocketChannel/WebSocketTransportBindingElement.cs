@@ -4,6 +4,7 @@ using System.Configuration;
 using System.Linq;
 using System.ServiceModel.Channels;
 using System.Text;
+using log4net;
 
 namespace WebSocketChannel
 {
@@ -94,5 +95,7 @@ namespace WebSocketChannel
             get;
             set;
         }
+
+        private static readonly ILog logger = LogManager.GetLogger(typeof(WebSocketTransportBindingElement));
     }
 }

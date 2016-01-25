@@ -6,6 +6,7 @@ using System.ServiceModel.Channels;
 using System.ServiceModel.Description;
 using System.Text;
 using CustomTcpDuplex.Channels;
+using log4net.Config;
 using WebSocketChannel;
 
 namespace WcfServer
@@ -14,9 +15,11 @@ namespace WcfServer
     {
         static void Main(string[] args)
         {
+            XmlConfigurator.Configure();
+
             //string baseAddress = WebSocketTransportBindingElement.WebSocketScheme + "://localhost:12012";
             //ServiceHost host = new ServiceHost(typeof(CalculatorService), new Uri(baseAddress));
-            Binding binding = new CustomBinding(new WebSocketTransportBindingElement());
+            //Binding binding = new CustomBinding(new WebSocketTransportBindingElement());
 
             //string baseAddress = "net.tcp://localhost:9999";
             //ServiceHost host = new ServiceHost(typeof(CalculatorService), new Uri(baseAddress));

@@ -4,6 +4,7 @@ using System.Linq;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
 using System.Text;
+using log4net;
 
 namespace WebSocketChannel
 {
@@ -55,6 +56,8 @@ namespace WebSocketChannel
         }
         static void OnReceive(IAsyncResult result)
         {
+            logger.Debug("OnReceive() ");
+
             TryReceiveAsyncResult thisPtr = (TryReceiveAsyncResult)result.AsyncState;
             Exception completionException = null;
             try
@@ -87,5 +90,7 @@ namespace WebSocketChannel
                 return false;
             }
         }
+
+        private static readonly ILog logger = LogManager.GetLogger(typeof(TryReceiveAsyncResult));
     }
 }

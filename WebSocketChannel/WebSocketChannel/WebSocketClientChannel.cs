@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
-using System.Text;
+using log4net;
 using WebSocket4Net;
 
 namespace WebSocketChannel
@@ -64,7 +63,7 @@ namespace WebSocketChannel
         {
             if (e.Data == null)
             {
-                // log
+                logger.Error("null data received.");
                 return;
             }
 
@@ -94,17 +93,24 @@ namespace WebSocketChannel
 
         void wsClient_Closed(object sender, EventArgs e)
         {
-            throw new NotImplementedException();
+            logger.InfoFormat("Channel[{0}] closed.", sender.GetHashCode());
         }
 
         protected override void OnAbort()
         {
-            throw new NotImplementedException();
+            logger.Error("OnAbort()");
+
+            if (wsClient.State == WebSocketState.Open)
+            {
+                wsClient.Close();
+            }
         }
 
         protected override IAsyncResult OnBeginClose(TimeSpan timeout, AsyncCallback callback, object state)
         {
-            throw new NotImplementedException();
+            this.OnClose(timeout);
+
+            return new CompletedAsyncResult(callback, state);
         }
 
         protected override IAsyncResult OnBeginOpen(TimeSpan timeout, AsyncCallback callback, object state)
@@ -118,12 +124,17 @@ namespace WebSocketChannel
 
         protected override void OnClose(TimeSpan timeout)
         {
-            throw new NotImplementedException();
+            logger.Info("OnClose()");
+
+            if (wsClient.State == WebSocketState.Open)
+            {
+                wsClient.Close();
+            }
         }
 
         protected override void OnEndClose(IAsyncResult result)
         {
-            throw new NotImplementedException();
+            CompletedAsyncResult.End(result);
         }
 
         protected override void OnEndOpen(IAsyncResult result)
@@ -311,6 +322,9 @@ namespace WebSocketChannel
             get;
             private set;
         }
+
+        private static readonly ILog logger = LogManager.GetLogger(typeof(WebSocketClientChannel));
+
     } // class WebSocketClientChannel : ChannelBase, IDuplexChannel
 
     class OpenAsyncResult : AsyncResult
@@ -322,11 +336,15 @@ namespace WebSocketChannel
 
         public void Complete()
         {
+            logger.Info("Complete()");
+
             this.Complete(false);
         }
 
         public void Complete(Exception e)
         {
+            logger.InfoFormat("Complete(). [{0}]\r\n[{1}]", e.Message, e.StackTrace);
+
             this.Complete(false, e);
         }
 
@@ -334,6 +352,9 @@ namespace WebSocketChannel
         {
             AsyncResult.End<OpenAsyncResult>(result);
         }
+
+        private static readonly ILog logger = LogManager.GetLogger(typeof(OpenAsyncResult));
+
     } // class OpenAsyncResult
 
 
@@ -347,6 +368,8 @@ namespace WebSocketChannel
 
         public void Complete(bool completedSynchronously, byte[] data)
         {
+            logger.DebugFormat("Complete() data length[{0}]", data != null ? data.Length.ToString() : "null");
+
             this.data = data;
 
             this.Complete(completedSynchronously);
@@ -362,5 +385,8 @@ namespace WebSocketChannel
             ReadDataAsyncResultClient thisPtr = AsyncResult.End<ReadDataAsyncResultClient>(result);
             return thisPtr.data;
         }
+
+        private static readonly ILog logger = LogManager.GetLogger(typeof(ReadDataAsyncResultClient));
+
     } // class ReadDataAsyncResult
 }
