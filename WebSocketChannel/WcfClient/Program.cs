@@ -49,12 +49,7 @@ namespace WcfClient
 
             //Console.WriteLine("Add() returned.");
 
-            byte[] data = new byte[1024];
-            for (int i = 0; i < 1024; i++)
-            {
-                data[i] = 0x01;
-            }
-
+            byte[] data = new byte[1024000];           
             while (true)
             {
                 Console.WriteLine("sending data");

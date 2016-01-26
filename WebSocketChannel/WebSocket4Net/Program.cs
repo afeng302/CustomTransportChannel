@@ -32,7 +32,7 @@ namespace WebSocket4Net
 
             //wsClient = new WebSocket("ws://112.74.207.57:2012/");
             //wsClient = new WebSocket("ws://112.74.207.5:2012/", version: WebSocketVersion.None,
-                //httpConnectProxy: new DnsEndPoint("wwwgate0.mot.com", 1080));
+            //httpConnectProxy: new DnsEndPoint("wwwgate0.mot.com", 1080));
             //wsClient = new WebSocket("ws://a23126-04:2012/", "", null, null, "", "", WebSocketVersion.None, 
             //    new DnsEndPoint("wwwgate0.mot.com", 1080));
 
@@ -45,7 +45,9 @@ namespace WebSocket4Net
             //list_customHeaderItems.Add(new KeyValuePair<string, string>("Authorization", "Basic " + authInfo));
 
             wsClient = new WebSocket(string.Format("ws://{0}:{1}/", remoteHost, remotePort));
-                //customHeaderItems: list_customHeaderItems);
+            //customHeaderItems: list_customHeaderItems);
+
+            wsClient.ReceiveBufferSize = 4096 * 1024;
 
             if (proxyUri != null)
             {
@@ -68,10 +70,19 @@ namespace WebSocket4Net
                 return;
             }
 
-            Random rnd = new Random();
-            string msg = "echo " + rnd.Next(0, 100).ToString();
-            Console.WriteLine("sending msg ... [" + msg + "]");
-            wsClient.Send(msg);
+            //Random rnd = new Random();
+            //string msg = "echo " + rnd.Next(0, 100).ToString();
+            //Console.WriteLine("sending msg ... [" + msg + "]");
+            //wsClient.Send(msg);
+
+            while (true)
+            {
+                byte[] data = new byte[1024000];
+                Console.WriteLine("sending msg ... [" + data.Length + "]");
+                wsClient.Send(data, 0, data.Length);
+
+                Thread.Sleep(300);
+            }
 
             Console.ReadKey();
         }
@@ -100,10 +111,10 @@ namespace WebSocket4Net
         {
             Console.WriteLine("wsClient_DataReceived. Length= [" + e.Data.Length + "]");
 
-            Console.WriteLine("will close connect ...");
-            Thread.Sleep(1000);
+            //Console.WriteLine("will close connect ...");
+            //Thread.Sleep(1000);
 
-            ((WebSocket)sender).Close();
+            //((WebSocket)sender).Close();
         }
 
         static void wsClient_Opened(object sender, EventArgs e)

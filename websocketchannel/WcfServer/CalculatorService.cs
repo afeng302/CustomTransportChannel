@@ -32,7 +32,7 @@ namespace WcfServer
 
             Console.WriteLine("sending data back ...");
 
-            data = new byte[2048];
+            data = new byte[1024000];
 
             ICallback callback = OperationContext.Current.GetCallbackChannel<ICallback>();
             DateTime t0 = DateTime.Now;

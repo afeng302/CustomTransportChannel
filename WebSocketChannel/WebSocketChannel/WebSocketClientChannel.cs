@@ -9,7 +9,7 @@ namespace WebSocketChannel
 {
     class WebSocketClientChannel : ChannelBase, IDuplexSessionChannel
     {
-        const int maxBufferSize = 64 * 1024;
+        const int maxBufferSize = 2*1024000;
 
         MessageEncoder encoder;
         BufferManager bufferManager;

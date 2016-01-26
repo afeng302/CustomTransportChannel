@@ -6,6 +6,7 @@ using System.ServiceModel;
 using System.ServiceModel.Channels;
 using System.Text;
 using log4net;
+using SuperSocket.SocketBase.Config;
 using SuperWebSocket;
 
 namespace WebSocketChannel
@@ -18,29 +19,31 @@ namespace WebSocketChannel
         Uri uri = null;
         Queue<AcceptChannelAsyncResult> asyncResultQueue = new Queue<AcceptChannelAsyncResult>();
         Dictionary<WebSocketSession, WebSocketServerChannel> channelMap = new Dictionary<WebSocketSession, WebSocketServerChannel>();
-        int receiveBufferSize;
         public WebSocketDuplexChannelListener(WebSocketTransportBindingElement bindingElement, BindingContext context)
             : base(context.Binding)
         {
             // populate members from binding element
-            receiveBufferSize = (int)bindingElement.ReceiveBufferSize;
-            this.bufferManager = BufferManager.CreateBufferManager(bindingElement.MaxBufferPoolSize, receiveBufferSize);
+            this.bufferManager = BufferManager.CreateBufferManager(WebSocketTransportBindingElement.MaxBufferSize * 10,
+                WebSocketTransportBindingElement.MaxBufferSize);
 
-            Collection<MessageEncodingBindingElement> messageEncoderBindingElements
-                = context.BindingParameters.FindAll<MessageEncodingBindingElement>();
+            //Collection<MessageEncodingBindingElement> messageEncoderBindingElements
+            //    = context.BindingParameters.FindAll<MessageEncodingBindingElement>();
 
-            if (messageEncoderBindingElements.Count > 1)
-            {
-                throw new InvalidOperationException("More than one MessageEncodingBindingElement was found in the BindingParameters of the BindingContext");
-            }
-            else if (messageEncoderBindingElements.Count == 1)
-            {
-                this.encoderFactory = messageEncoderBindingElements[0].CreateMessageEncoderFactory();
-            }
-            else
-            {
-                this.encoderFactory = new TextMessageEncodingBindingElement(MessageVersion.Soap12WSAddressing10, Encoding.UTF8).CreateMessageEncoderFactory();
-            }
+            //if (messageEncoderBindingElements.Count > 1)
+            //{
+            //    throw new InvalidOperationException("More than one MessageEncodingBindingElement was found in the BindingParameters of the BindingContext");
+            //}
+            //else if (messageEncoderBindingElements.Count == 1)
+            //{
+            //    this.encoderFactory = messageEncoderBindingElements[0].CreateMessageEncoderFactory();
+            //}
+            //else
+            //{
+                //this.encoderFactory = new TextMessageEncodingBindingElement(MessageVersion.Soap12WSAddressing10, Encoding.UTF8).CreateMessageEncoderFactory();
+            BinaryMessageEncodingBindingElement encodingBindingElement = new BinaryMessageEncodingBindingElement();
+            encodingBindingElement.MessageVersion = MessageVersion.Soap12WSAddressing10;
+            this.encoderFactory = encodingBindingElement.CreateMessageEncoderFactory();
+            //}
 
             this.uri = new Uri(context.ListenUriBaseAddress, context.ListenUriRelativeAddress);
         }
@@ -123,7 +126,20 @@ namespace WebSocketChannel
 
         private void Start()
         {
-            this.wsServer.Setup(this.uri.Port);
+            //RootConfig
+            ServerConfig cfg = new ServerConfig()
+            {
+                Port = this.uri.Port,
+                Ip = "Any",
+                Mode = SuperSocket.SocketBase.SocketMode.Tcp,
+                ReceiveBufferSize = WebSocketTransportBindingElement.MaxBufferSize,
+                SendBufferSize = WebSocketTransportBindingElement.MaxBufferSize,
+                MaxRequestLength = WebSocketTransportBindingElement.MaxBufferSize,
+                MaxConnectionNumber = 20
+            };
+
+            this.wsServer.Setup(cfg);
+
             this.wsServer.NewSessionConnected += wsServer_NewSessionConnected;
             this.wsServer.SessionClosed += wsServer_SessionClosed;
             this.wsServer.NewDataReceived += wsServer_NewDataReceived;
@@ -149,13 +165,15 @@ namespace WebSocketChannel
                 {
                     // log
                     Console.WriteLine("session not found!!!");
+                    logger.ErrorFormat("session [{0}] found for data length []!", session.RemoteEndPoint, 
+                        value != null ? value.Length.ToString() : "null");
                     return;
                 }
             }
 
             // log
             logger.DebugFormat("data recieved [{0}] at channel [{1}].",
-                value != null ? value.Length.ToString() : "null", channel.GetHashCode());
+                value != null ? value.Length.ToString() : "null", session.RemoteEndPoint);
 
             // receve data
             channel.ReceiveData(value);
@@ -170,6 +188,7 @@ namespace WebSocketChannel
                 if (!this.channelMap.TryGetValue(session, out channel))
                 {
                     // log
+                    logger.ErrorFormat("session[{0}] not found in channel map", session.RemoteEndPoint);
                     Console.WriteLine("session not found!!!");
                     return;
                 }
@@ -181,7 +200,7 @@ namespace WebSocketChannel
             channel.Close();
 
             // log
-            logger.InfoFormat("channel[{0}] colsed. total channel number [{1}]", channel.GetHashCode(), this.channelMap.Count);
+            logger.InfoFormat("channel[{0}] colsed. total channel number [{1}]", session.RemoteEndPoint, this.channelMap.Count);
         }
 
         void wsServer_NewSessionConnected(WebSocketSession session)
@@ -201,7 +220,7 @@ namespace WebSocketChannel
             }
 
             WebSocketServerChannel channel = new WebSocketServerChannel(this.encoderFactory.Encoder, this.bufferManager,
-                this, session, new EndpointAddress(this.uri));
+                this, session);
             lock (this.channelMap)
             {
                 this.channelMap[session] = channel;
@@ -210,7 +229,8 @@ namespace WebSocketChannel
             aysncResult.Complete(channel);
 
             // log
-            logger.InfoFormat("new server channel[{0}] created. total channel number: [{1}]", channel.GetHashCode(), this.channelMap.Count);
+            logger.InfoFormat("new server channel[{0}] created. total channel number: [{1}]", 
+                session.RemoteEndPoint, this.channelMap.Count);
         }
 
         private void Stop()

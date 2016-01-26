@@ -12,6 +12,13 @@ namespace WebSocketChannel
     {
         public const string WebSocketScheme = "ws";
 
+        /// <summary>
+        /// To simplify the logic, we use this buffer size will be used for receive and send buffer.
+        /// It is a simple fixed value for "all" buffer used in transport.
+        /// There is no configuration provided for it.
+        /// </summary>
+        public const int MaxBufferSize = 2048 * 1024;
+
         public WebSocketTransportBindingElement()
             : base()
         {
@@ -24,7 +31,6 @@ namespace WebSocketChannel
             this.ProxyUri = elementToBeCloned.ProxyUri;
             this.ProxyAuthUserName = elementToBeCloned.ProxyAuthUserName;
             this.ProxyAuthPassword = elementToBeCloned.ProxyAuthPassword;
-            this.ReceiveBufferSize = elementToBeCloned.ReceiveBufferSize;
         }
         public override string Scheme
         {
@@ -85,12 +91,6 @@ namespace WebSocketChannel
         }
 
         public string ProxyAuthPassword
-        {
-            get;
-            set;
-        }
-
-        public int ReceiveBufferSize
         {
             get;
             set;

@@ -17,35 +17,36 @@ namespace WebSocketChannel
         string proxyAuthUserName;
         string proxyAuthPassword;
         Uri proxyUri;
-        int receiveBuffSize;
         public WebSocketDuplexChannelFactory(WebSocketTransportBindingElement bindingElement, BindingContext context)
             : base(context.Binding)
         {
             // populate members from binding element
-            int maxBufferSize = (int)bindingElement.MaxReceivedMessageSize;
-            this.bufferManager = BufferManager.CreateBufferManager(bindingElement.MaxBufferPoolSize, maxBufferSize);
+            this.bufferManager = BufferManager.CreateBufferManager(WebSocketTransportBindingElement.MaxBufferSize * 10,
+                WebSocketTransportBindingElement.MaxBufferSize);
 
-            Collection<MessageEncodingBindingElement> messageEncoderBindingElements
-                = context.BindingParameters.FindAll<MessageEncodingBindingElement>();
+            //Collection<MessageEncodingBindingElement> messageEncoderBindingElements
+            //    = context.BindingParameters.FindAll<MessageEncodingBindingElement>();
 
-            if (messageEncoderBindingElements.Count > 1)
-            {
-                throw new InvalidOperationException("More than one MessageEncodingBindingElement was found in the BindingParameters of the BindingContext");
-            }
-            else if (messageEncoderBindingElements.Count == 1)
-            {
-                this.encoderFactory = messageEncoderBindingElements[0].CreateMessageEncoderFactory();
-            }
-            else
-            {
-                this.encoderFactory = new TextMessageEncodingBindingElement(MessageVersion.Soap12WSAddressing10, Encoding.UTF8).CreateMessageEncoderFactory();
-            }
+            //if (messageEncoderBindingElements.Count > 1)
+            //{
+            //    throw new InvalidOperationException("More than one MessageEncodingBindingElement was found in the BindingParameters of the BindingContext");
+            //}
+            //else if (messageEncoderBindingElements.Count == 1)
+            //{
+            //    this.encoderFactory = messageEncoderBindingElements[0].CreateMessageEncoderFactory();
+            //}
+            //else
+            //{
+                //this.encoderFactory = new TextMessageEncodingBindingElement(MessageVersion.Soap12WSAddressing10, Encoding.UTF8).CreateMessageEncoderFactory();
+            BinaryMessageEncodingBindingElement encodingBindingElement = new BinaryMessageEncodingBindingElement();
+            encodingBindingElement.MessageVersion = MessageVersion.Soap12WSAddressing10;
+            this.encoderFactory = encodingBindingElement.CreateMessageEncoderFactory();
+            //}
 
             this.useProxy = bindingElement.UseProxy;
             this.proxyUri = string.IsNullOrEmpty(bindingElement.ProxyUri) ? null : new Uri(bindingElement.ProxyUri);
             this.proxyAuthUserName = bindingElement.ProxyAuthUserName;
             this.proxyAuthPassword = bindingElement.ProxyAuthPassword;
-            this.receiveBuffSize = bindingElement.ReceiveBufferSize;
         }
 
         protected override IDuplexSessionChannel OnCreateChannel(System.ServiceModel.EndpointAddress address, Uri via)
@@ -53,17 +54,28 @@ namespace WebSocketChannel
             logger.InfoFormat("OnCreateChannel(). address[{0}], via[{1}]", address, via);
 
             WebSocket wsSocket = new WebSocket(address.Uri.ToString());
-            wsSocket.ReceiveBufferSize = this.receiveBuffSize;
+            wsSocket.ReceiveBufferSize = WebSocketTransportBindingElement.MaxBufferSize;
 
             // check if need web proxy to access server
             if (this.useProxy)
             {
                 Uri serviceUrl = new Uri(string.Format("http://{0}", address.Uri.Host));
-                Uri proxyUri = WebRequest.DefaultWebProxy.GetProxy(serviceUrl);
-                if (serviceUrl != proxyUri)
+
+                // if there is no proxy uri specified, use the system default proxy.
+                if (this.proxyUri == null)
                 {
-                    Console.WriteLine("use proxy: [" + proxyUri.ToString() + "]");
-                    logger.InfoFormat("http proxy[{0}] will be used in the connection.", proxyUri);
+                    Uri proxyUri = WebRequest.DefaultWebProxy.GetProxy(serviceUrl);
+                    if (serviceUrl != proxyUri)
+                    {
+                        this.proxyUri = proxyUri;
+                    }
+                }
+
+                // if there is proxy setted/pretected, use the proxy for the connection.
+                if (this.proxyUri != null)
+                {
+                    Console.WriteLine("use proxy: [" + this.proxyUri.ToString() + "]");
+                    logger.InfoFormat("http proxy[{0}] will be used in the connection.", this.proxyUri);
 
                     IPAddress ip;
                     EndPoint proxyEndPoint;

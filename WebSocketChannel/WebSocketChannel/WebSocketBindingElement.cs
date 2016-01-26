@@ -15,7 +15,6 @@ namespace WebSocketChannel
         const string ProxyUriPropertyName = "proxyUri";
         const string ProxyAuthUserNamePropertyName = "proxyAuthUserName";
         const string ProxyAuthPasswordPropertyName = "proxyAuthPassword";
-        const string ReceiveBufferSizePropertyName = "receiveBufferSize";
         protected override Type BindingElementType
         {
             get { return typeof(WebSocketBinding); }
@@ -40,7 +39,6 @@ namespace WebSocketChannel
             ((WebSocketBinding)binding).ProxyUri = this.ProxyUri;
             ((WebSocketBinding)binding).ProxyAuthUserName = this.ProxyAuthUserName;
             ((WebSocketBinding)binding).ProxyAuthPassword = this.ProxyAuthPassword;
-            ((WebSocketBinding)binding).ReceiveBufferSize = this.ReceiveBufferSize;
         }
 
         protected override ConfigurationPropertyCollection Properties
@@ -52,7 +50,6 @@ namespace WebSocketChannel
                 result.Add(new ConfigurationProperty(ProxyUriPropertyName, typeof(string), string.Empty));
                 result.Add(new ConfigurationProperty(ProxyAuthUserNamePropertyName, typeof(string), string.Empty));
                 result.Add(new ConfigurationProperty(ProxyAuthPasswordPropertyName, typeof(string), string.Empty));
-                result.Add(new ConfigurationProperty(ReceiveBufferSizePropertyName, typeof(int), 65536));
 
                 return base.Properties;
             }
@@ -84,13 +81,6 @@ namespace WebSocketChannel
         {
             get { return (string)base[ProxyAuthPasswordPropertyName]; }
             set { base[ProxyAuthPasswordPropertyName] = value; }
-        }
-
-        [ConfigurationProperty(ReceiveBufferSizePropertyName, DefaultValue = 65536)]
-        public int ReceiveBufferSize
-        {
-            get { return (int)base[ReceiveBufferSizePropertyName]; }
-            set { base[ReceiveBufferSizePropertyName] = value; }
         }
 
         private static readonly ILog logger = LogManager.GetLogger(typeof(WebSocketBindingElement));

@@ -11,7 +11,7 @@ namespace WebSocketChannel
 {
     class WebSocketServerChannel : ChannelBase, IDuplexSessionChannel 
     {
-        const int maxBufferSize = 64 * 1024;
+        const int maxBufferSize = 2048000;
 
         MessageEncoder encoder;
         BufferManager bufferManager;
@@ -28,14 +28,16 @@ namespace WebSocketChannel
         /// </summary>
         object recvLocker = new object();
         public WebSocketServerChannel(MessageEncoder encoder, BufferManager bufferManager, ChannelManagerBase channelManager,
-            WebSocketSession wsServer, EndpointAddress localAddress)
+            WebSocketSession wsServer)//, EndpointAddress localAddress, EndpointAddress remoteAddress)
             : base(channelManager)
         {
             this.encoder = encoder;
             this.bufferManager = bufferManager;
 
             this.wsServer = wsServer;
-            this.localAddress = localAddress;
+            this.localAddress = new EndpointAddress(wsServer.Origin);
+            this.remoteAddress =new EndpointAddress(string.Format("{0}://{1}:{2}", 
+                wsServer.UriScheme, wsServer.RemoteEndPoint.Address, wsServer.RemoteEndPoint.Port));
 
             this.Session = new ConnectionDuplexSession();
         }

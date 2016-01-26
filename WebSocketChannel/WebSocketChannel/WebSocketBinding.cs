@@ -74,12 +74,6 @@ namespace WebSocketChannel
             set { this.transportElement.ProxyAuthPassword = value; }
         }
 
-        public int ReceiveBufferSize
-        {
-            get { return this.transportElement.ReceiveBufferSize; }
-            set { this.transportElement.ReceiveBufferSize = value; }
-        }
-
         private static readonly ILog logger = LogManager.GetLogger(typeof(WebSocketBinding));
     }
 }
