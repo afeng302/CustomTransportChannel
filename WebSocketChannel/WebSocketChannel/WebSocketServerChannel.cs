@@ -212,10 +212,6 @@ namespace WebSocketChannel
                     this.wsServer.Send(item.Array, item.Offset, item.Count);
                 }
 
-                //this.wsServer.Send(segments);
-
-                //this.wsServer.Send(encodedBytes.Array, encodedBytes.Offset, encodedBytes.Count);
-
                 logger.DebugFormat("sent message [{0}].", encodedBytes.Count);
             }
             finally

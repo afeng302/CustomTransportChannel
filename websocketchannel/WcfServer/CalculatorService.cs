@@ -34,11 +34,11 @@ namespace WcfServer
             Console.WriteLine("received data: " + data.Length);
 
             //Console.WriteLine("sending data back ...");
-            //data = new byte[data.Length];
+            data = new byte[data.Length];
 
-            //ICallback callback = OperationContext.Current.GetCallbackChannel<ICallback>();
+            ICallback callback = OperationContext.Current.GetCallbackChannel<ICallback>();
             //DateTime t0 = DateTime.Now;
-            //callback.SendBulkDataBack(data);
+            callback.SendBulkDataBack(data);
             //DateTime t1 = DateTime.Now;
             //Console.WriteLine("timespan: " + (t1 - t0).TotalMilliseconds);
         }

@@ -49,7 +49,6 @@ namespace WebSocketChannel
             {
                 this.openAsyncResult.Complete();
             }
-
         }
 
         void wsClient_Error(object sender, SuperSocket.ClientEngine.ErrorEventArgs e)
@@ -104,34 +103,6 @@ namespace WebSocketChannel
                 return; // not full
             }
             this.bufferPos = -1;
-
-            //// welcome data received
-            //if (e.Data.Length == 1024888)
-            //{
-            //    Console.WriteLine("welcome data received. 1024888");
-            //    logger.Debug("welcome data received. 1024888");
-            //    return;
-            //}
-
-            //// pad data received
-            if (e.Data.Length == 1024999)
-            {
-                //    t1 = DateTime.Now;
-                //    Console.WriteLine("TimeSpan=" + (t1 - t0).TotalMilliseconds);
-
-                //    Console.WriteLine("pad data received. 1024999");
-                //    logger.Debug("pad data received. 1024999");
-
-                //    // send pad data
-                //    System.Threading.Thread.Sleep(500);
-                //    byte[] data = new byte[1024999];
-
-                //    Console.WriteLine("sending ...");
-                //    t0 = DateTime.Now;
-                //    this.wsClient.Send(data, 0, 1024999);
-
-                return;
-            }
 
             // complete the read async result
             lock (this.readDataAsyncResultQueue)
