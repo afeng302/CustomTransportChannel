@@ -17,18 +17,19 @@ namespace WebSocket4Net
         {
             // remote sevice information
             string remoteHost = "127.0.0.1";
+            //string remoteHost = "a23126-04";
             //string remoteHost = "112.74.207.57";
             //string remoteHost = "10.193.228.69"; //"a23126-04"; // 10.193.228.69
-            string remotePort = "2012";
+            string remotePort = "12012";
 
             // get default web proxy
-            Uri serviceUrl = new Uri(string.Format("http://{0}", remoteHost));
-            //Uri serviceUrl = new Uri(string.Format("http://www.baidu.com", remoteHost));
-            Uri proxyUri = WebRequest.DefaultWebProxy.GetProxy(serviceUrl);
-            if (serviceUrl == proxyUri)
-            {
-                proxyUri = null;
-            }
+            //Uri serviceUrl = new Uri(string.Format("http://{0}", remoteHost));
+            ////Uri serviceUrl = new Uri(string.Format("http://www.baidu.com", remoteHost));
+            //Uri proxyUri = WebRequest.DefaultWebProxy.GetProxy(serviceUrl);
+            //if (serviceUrl == proxyUri)
+            //{
+            //    proxyUri = null;
+            //}
 
             //wsClient = new WebSocket("ws://112.74.207.57:2012/");
             //wsClient = new WebSocket("ws://112.74.207.5:2012/", version: WebSocketVersion.None,
@@ -47,14 +48,14 @@ namespace WebSocket4Net
             wsClient = new WebSocket(string.Format("ws://{0}:{1}/", remoteHost, remotePort));
             //customHeaderItems: list_customHeaderItems);
 
-            wsClient.ReceiveBufferSize = 4096 * 1024;
+            //wsClient.ReceiveBufferSize = 2048 * 1024;
 
-            if (proxyUri != null)
-            {
-                Console.WriteLine("use proxy: [" + proxyUri.ToString() + "]");
-                HttpConnectProxy proxy = new HttpConnectProxy(new DnsEndPoint(proxyUri.Host, proxyUri.Port));
-                wsClient.Proxy = proxy;
-            }
+            //if (proxyUri != null)
+            //{
+            //    Console.WriteLine("use proxy: [" + proxyUri.ToString() + "]");
+            //    HttpConnectProxy proxy = new HttpConnectProxy(new DnsEndPoint(proxyUri.Host, proxyUri.Port));
+            //    wsClient.Proxy = proxy;
+            //}
 
             wsClient.Opened += wsClient_Opened;
             wsClient.DataReceived += wsClient_DataReceived;
@@ -75,13 +76,15 @@ namespace WebSocket4Net
             //Console.WriteLine("sending msg ... [" + msg + "]");
             //wsClient.Send(msg);
 
-            while (true)
+            //while (true)
             {
-                byte[] data = new byte[1024000];
+                byte[] data = new byte[1024999];
                 Console.WriteLine("sending msg ... [" + data.Length + "]");
+
+                t0 = DateTime.Now;
                 wsClient.Send(data, 0, data.Length);
 
-                Thread.Sleep(300);
+                //Thread.Sleep(300);
             }
 
             Console.ReadKey();
@@ -107,9 +110,21 @@ namespace WebSocket4Net
             ((WebSocket)sender).Send(data, 0, data.Length);
         }
 
+        static DateTime t0, t1;
         static void wsClient_DataReceived(object sender, DataReceivedEventArgs e)
         {
             Console.WriteLine("wsClient_DataReceived. Length= [" + e.Data.Length + "]");
+            t1 = DateTime.Now;
+            Console.WriteLine("TimeSpan=" + (t1 - t0).TotalMilliseconds);
+
+            Thread.Sleep(500);
+
+            byte[] data = new byte[1024999];
+            Console.WriteLine("sending msg ... [" + data.Length + "]");
+
+            t0 = DateTime.Now;
+            ((WebSocket)sender).Send(data, 0, data.Length);
+            
 
             //Console.WriteLine("will close connect ...");
             //Thread.Sleep(1000);

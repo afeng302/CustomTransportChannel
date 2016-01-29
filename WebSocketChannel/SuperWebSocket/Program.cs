@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading;
 using SuperSocket.SocketBase;
 using SuperSocket.SocketBase.Config;
+using SuperSocket.SocketEngine;
 
 namespace SuperWebSocket
 {
@@ -19,15 +20,55 @@ namespace SuperWebSocket
             //Console.ReadKey();
             //Console.WriteLine();
 
+            //var bootstrap = BootstrapFactory.CreateBootstrap();
+
+            //if (!bootstrap.Initialize())
+            //{
+            //    Console.WriteLine("Failed to initialize!");
+            //    Console.ReadKey();
+            //    return;
+            //}
+
+            //WebSocketServer server = Enumerable.First<IWorkItem>(bootstrap.AppServers) as WebSocketServer;
+            //server.NewSessionConnected += wsServer_NewSessionConnected;
+            //server.SessionClosed += wsServer_SessionClosed;
+            //server.NewDataReceived += wsServer_NewDataReceived;
+            //server.NewMessageReceived += wsServer_NewMessageReceived;
+
+            //var result = bootstrap.Start();
+
+            //Console.WriteLine("Start result: {0}!", result);
+
+            //if (result == StartResult.Failed)
+            //{
+            //    Console.WriteLine("Failed to start!");
+            //    Console.ReadKey();
+            //    return;
+            //}
+
+            //Console.WriteLine("Press key 'q' to stop it!");
+
+            //while (Console.ReadKey().KeyChar != 'q')
+            //{
+            //    Console.WriteLine();
+            //    continue;
+            //}
+
+            //Console.WriteLine();
+
+            ////Stop the appServer
+            //bootstrap.Stop();
+
+
             ServerConfig cfg = new ServerConfig()
             {
-                Port = 2012,
+                Port = 12012,
                 Ip = "Any",
                 Mode = SuperSocket.SocketBase.SocketMode.Tcp,
-                ReceiveBufferSize = 2048 * 1024,
-                SendBufferSize = 2048 * 1024,
+                //ReceiveBufferSize = 100* 1024,
+                //SendBufferSize = 2048 * 1024,
                 MaxRequestLength = 2048 * 1024,
-                MaxConnectionNumber = 20
+                //MaxConnectionNumber = 20
             };
 
             WebSocketServer wsServer = new WebSocketServer();
@@ -81,16 +122,21 @@ namespace SuperWebSocket
 
         static void wsServer_NewDataReceived(WebSocketSession session, byte[] value)
         {
-            Console.WriteLine("wsServer_NewDataReceived. Length= [" + value.Length + "]");
+            Console.WriteLine("wsServer_NewDataReceived. Length = [{0}]", value.Length);
 
-            Console.WriteLine("will echo back ...");
-            //Thread.Sleep(1000);
+            Console.WriteLine("echo back ...");
+
+            //Thread.Sleep(200);
 
             // copy the data and send back
-            byte[] data = new byte[value.Length];
-            Array.Copy(value, data, value.Length);
+            byte[] data = new byte[100];
+            //Array.Copy(value, data, value.Length);
 
+            DateTime t0 = DateTime.Now;
             session.Send(data, 0, data.Length);
+            DateTime t1 = DateTime.Now;
+
+            Console.WriteLine("timespan: [{0}]", (t1 - t0).TotalMilliseconds);
         }
 
         static void wsServer_NewSessionConnected(WebSocketSession session)

@@ -6,6 +6,7 @@ using System.ServiceModel.Channels;
 using System.ServiceModel.Description;
 using System.Text;
 using CustomTcpDuplex.Channels;
+using log4net;
 using log4net.Config;
 using WcfServer;
 using WebSocketChannel;
@@ -49,20 +50,35 @@ namespace WcfClient
 
             //Console.WriteLine("Add() returned.");
 
-            byte[] data = new byte[1024000];           
+                      
             while (true)
             {
                 Console.WriteLine("sending data");
+                byte[] data = new byte[1024000];
 
-                DateTime t0 = DateTime.Now;
-                proxy.SendBulkData(data);
-                DateTime t1 = DateTime.Now;
 
-                Console.WriteLine("timespan: " + (t1 - t0).TotalMilliseconds);
+                logger.DebugFormat("sending data ...");
 
-                System.Threading.Thread.Sleep(1000);
+                //try
+                //{
+                    DateTime t0 = DateTime.Now;
+                    proxy.SendBulkData(data);
+                    //proxy.Add(2, 3);
+                    DateTime t1 = DateTime.Now;
+                    TimeSpan span = t1 - t0;
+                    Console.WriteLine("SendBulkData. timespan: [{0}]", span.TotalMilliseconds);
+                    logger.DebugFormat("SendBulkData. timespan: [{0}]", span.TotalMilliseconds);
+                //}
+                //catch (Exception)
+                //{
+                //}
+
+                System.Threading.Thread.Sleep(500);
             }
 
+            Console.ReadKey();
         }
+
+        private static readonly ILog logger = LogManager.GetLogger(typeof(Program));
     }
 }

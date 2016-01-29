@@ -9,7 +9,7 @@ using SuperWebSocket;
 
 namespace WebSocketChannel
 {
-    class WebSocketServerChannel : ChannelBase, IDuplexSessionChannel 
+    class WebSocketServerChannel : ChannelBase, IDuplexSessionChannel
     {
         const int maxBufferSize = 2048000;
 
@@ -36,7 +36,7 @@ namespace WebSocketChannel
 
             this.wsServer = wsServer;
             this.localAddress = new EndpointAddress(wsServer.Origin);
-            this.remoteAddress =new EndpointAddress(string.Format("{0}://{1}:{2}", 
+            this.remoteAddress = new EndpointAddress(string.Format("{0}://{1}:{2}",
                 wsServer.UriScheme, wsServer.RemoteEndPoint.Address, wsServer.RemoteEndPoint.Port));
 
             this.Session = new ConnectionDuplexSession();
@@ -45,7 +45,7 @@ namespace WebSocketChannel
         {
             logger.Error("OnAbort()");
 
-            if(this.wsServer.Connected)
+            if (this.wsServer.Connected)
             {
                 this.wsServer.Close();
             }
@@ -202,7 +202,21 @@ namespace WebSocketChannel
             {
                 encodedBytes = this.EncodeMessage(message);
 
-                this.wsServer.Send(encodedBytes.Array, encodedBytes.Offset, encodedBytes.Count);
+                List<ArraySegment<byte>> segments = this.SplitData(encodedBytes);
+                byte[] lenArray = BitConverter.GetBytes(encodedBytes.Count);
+                segments.Insert(0, new ArraySegment<byte>(lenArray, 0, 4));
+
+                // send message
+                foreach (var item in segments)
+                {
+                    this.wsServer.Send(item.Array, item.Offset, item.Count);
+                }
+
+                //this.wsServer.Send(segments);
+
+                //this.wsServer.Send(encodedBytes.Array, encodedBytes.Offset, encodedBytes.Count);
+
+                logger.DebugFormat("sent message [{0}].", encodedBytes.Count);
             }
             finally
             {
@@ -223,6 +237,10 @@ namespace WebSocketChannel
             get { throw new NotImplementedException(); }
         }
 
+        byte[] recvBuffer = null;
+        int bufferPos = -1;
+        int expectLen = -1;
+
         public void ReceiveData(byte[] data)
         {
             if (data == null)
@@ -230,6 +248,32 @@ namespace WebSocketChannel
                 logger.Error("received null data");
                 return;
             }
+
+            // get length data
+            if (this.bufferPos == -1)
+            {
+                if (data.Length != 4)
+                {
+                    logger.ErrorFormat("error length data. [{0}]", data.Length);
+                    return;
+                }
+
+                // length data
+                this.expectLen = BitConverter.ToInt32(data, 0);
+                this.recvBuffer = new byte[this.expectLen];
+                this.bufferPos = 0;
+
+                return;
+            }
+
+            // fill buffer
+            Array.Copy(data, 0, this.recvBuffer, this.bufferPos, data.Length);
+            this.bufferPos += data.Length;
+            if (this.bufferPos < this.expectLen)
+            {
+                return; // not full
+            }
+            this.bufferPos = -1;
 
             lock (this.recvLocker)
             {
@@ -239,7 +283,7 @@ namespace WebSocketChannel
                     ReadDataAsyncResultServer result = this.readDataAsyncResultQueue.Dequeue();
                     if (data != null)
                     {
-                        result.Complete(false, data);
+                        result.Complete(false, this.recvBuffer);
                     }
                     else
                     {
@@ -250,15 +294,20 @@ namespace WebSocketChannel
                 }
 
                 // there is no read data async result, cache the received data
-                this.receivedDataQueue.Enqueue(data);
+                this.receivedDataQueue.Enqueue(this.recvBuffer);
             }
         }
 
         ArraySegment<byte> EncodeMessage(Message message)
         {
+            logger.DebugFormat("Encoding message ...");
             try
             {
-                return encoder.WriteMessage(message, maxBufferSize, this.bufferManager);
+                ArraySegment<byte> bytes = encoder.WriteMessage(message, maxBufferSize, this.bufferManager);
+
+                logger.DebugFormat("Encoded message.");
+
+                return bytes;
             }
             finally
             {
@@ -269,6 +318,8 @@ namespace WebSocketChannel
 
         Message DecodeMessage(byte[] data)
         {
+            logger.DebugFormat("Decoding message ...");
+
             // take buffer from buffer manager
             // the message will be closed later and the buffer will be retured to buffer manager
             byte[] buffer = this.bufferManager.TakeBuffer(data.Length);
@@ -276,7 +327,7 @@ namespace WebSocketChannel
 
             // Note that we must set the ArraySegment count as data length. The buffer taken from buffer Manager
             // may have more space for the length required.
-            ArraySegment<byte> encodedBytes = new ArraySegment<byte>(buffer, 0, data.Length); 
+            ArraySegment<byte> encodedBytes = new ArraySegment<byte>(buffer, 0, data.Length);
 
             Message msg = this.encoder.ReadMessage(encodedBytes, this.bufferManager);
             if (msg != null)
@@ -286,6 +337,8 @@ namespace WebSocketChannel
                 //msg.Properties.Add(RemoteEndpointMessageProperty.Name, prop);
             }
 
+            logger.DebugFormat("Decoded.");
+
             return msg;
         }
 
@@ -293,6 +346,21 @@ namespace WebSocketChannel
         {
             get;
             private set;
+        }
+
+        private List<ArraySegment<byte>> SplitData(ArraySegment<byte> data)
+        {
+            List<ArraySegment<byte>> splitedList = new List<ArraySegment<byte>>();
+
+            int pos = data.Offset;
+            int maxLen = 65536; // 64K
+            while (pos < data.Count)
+            {
+                splitedList.Add(new ArraySegment<byte>(data.Array, pos, maxLen < (data.Count - pos) ? maxLen : data.Count - pos));
+                pos += maxLen;
+            }
+
+            return splitedList;
         }
 
         private static readonly ILog logger = LogManager.GetLogger(typeof(WebSocketServerChannel));

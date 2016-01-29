@@ -17,7 +17,7 @@ namespace WebSocketChannel
         /// It is a simple fixed value for "all" buffer used in transport.
         /// There is no configuration provided for it.
         /// </summary>
-        public const int MaxBufferSize = 2048 * 1024;
+        public const int MaxBufferSize = 3096 * 1024;
 
         public WebSocketTransportBindingElement()
             : base()
@@ -66,7 +66,7 @@ namespace WebSocketChannel
         {
             if (typeof(T) == typeof(MessageVersion))
             {
-                return (T)(object)MessageVersion.Soap12WSAddressing10;
+                return (T)(object)MessageVersion.None;
             }
 
             return base.GetProperty<T>(context);

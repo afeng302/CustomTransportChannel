@@ -5,6 +5,7 @@ using System.ServiceModel;
 using System.ServiceModel.Channels;
 using System.ServiceModel.Description;
 using System.Text;
+using System.Threading;
 using CustomTcpDuplex.Channels;
 using log4net.Config;
 using WebSocketChannel;
@@ -15,6 +16,12 @@ namespace WcfServer
     {
         static void Main(string[] args)
         {
+            //var spin = new SpinWait();
+            //while (true)
+            //{
+            //    spin.SpinOnce();
+            //}
+
             XmlConfigurator.Configure();
 
             //string baseAddress = WebSocketTransportBindingElement.WebSocketScheme + "://localhost:12012";

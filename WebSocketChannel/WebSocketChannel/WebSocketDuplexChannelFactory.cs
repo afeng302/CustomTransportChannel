@@ -37,10 +37,10 @@ namespace WebSocketChannel
             //}
             //else
             //{
-                //this.encoderFactory = new TextMessageEncodingBindingElement(MessageVersion.Soap12WSAddressing10, Encoding.UTF8).CreateMessageEncoderFactory();
-            BinaryMessageEncodingBindingElement encodingBindingElement = new BinaryMessageEncodingBindingElement();
-            encodingBindingElement.MessageVersion = MessageVersion.Soap12WSAddressing10;
-            this.encoderFactory = encodingBindingElement.CreateMessageEncoderFactory();
+            this.encoderFactory = new TextMessageEncodingBindingElement(MessageVersion.Soap12WSAddressing10, Encoding.UTF8).CreateMessageEncoderFactory();
+            //BinaryMessageEncodingBindingElement encodingBindingElement = new BinaryMessageEncodingBindingElement();
+            //encodingBindingElement.MessageVersion = MessageVersion.Soap12WSAddressing10;
+            //this.encoderFactory = encodingBindingElement.CreateMessageEncoderFactory();
             //}
 
             this.useProxy = bindingElement.UseProxy;
@@ -54,7 +54,9 @@ namespace WebSocketChannel
             logger.InfoFormat("OnCreateChannel(). address[{0}], via[{1}]", address, via);
 
             WebSocket wsSocket = new WebSocket(address.Uri.ToString());
-            wsSocket.ReceiveBufferSize = WebSocketTransportBindingElement.MaxBufferSize;
+            //wsSocket.ReceiveBufferSize = 1024000; //WebSocketTransportBindingElement.MaxBufferSize;
+
+            //wsSocket.NoDelay = true;
 
             // check if need web proxy to access server
             if (this.useProxy)
